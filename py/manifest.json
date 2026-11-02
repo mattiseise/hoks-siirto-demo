@@ -1,0 +1,12 @@
+{
+  "pyodide": "0.26.4",
+  "files": [
+    "wilma2/__init__.py",
+    "wilma2/app.py",
+    "wilma2/data.py",
+    "wilma2/pages.py",
+    "wilma2/route.py",
+    "demo_skin.py",
+    "silta.py"
+  ]
+}

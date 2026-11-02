@@ -1,0 +1,298 @@
+/* Haastattelupolku – testiversio. Ulkoasu prototyypistä (HOKS-verkkodemon ilme). */
+:root{--ink:#1a0530;--muted:#655b73;--paper:#f5f3f8;--panel:#fff;--line:#e2ddeb;--accent:#775ec4;--lav:#9d7dff;--tint:#eee8ff;--ok:#28664b;--ok-tint:#edf5ef;--warn:#935916;--warn-tint:#fff4e5;--sim:#5b4a7a;--sim-tint:#f1edf6;--radius:14px;--tabs-h:0px;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper)}
+*{box-sizing:border-box}
+body{margin:0;font-size:15px;line-height:1.55;background:var(--paper)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+button:disabled{cursor:not-allowed;opacity:.45}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
+h1{font-size:30px;line-height:1.15}
+h2{font-size:22px;line-height:1.25}
+.muted{color:var(--muted)}.small{font-size:13px}
+.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:11px;font-weight:700;color:var(--accent)}
+
+.demo-bar{background:var(--ink);color:#f2edff;display:flex;justify-content:center;gap:9px;align-items:center;flex-wrap:wrap;padding:8px 16px;font-size:12px;border-bottom:1px solid #4a355e}
+.demo-bar strong{font-size:11px;letter-spacing:.11em}
+.demo-bar button{color:#d9cdf2;font-size:12px;text-decoration:underline}
+
+/* Kaksi palstaa: sovellus | Chrome-paneeli (synteettinen Wilma). */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(400px,46%);align-items:start}
+.app-col{min-width:0;container:app/inline-size}
+.view-tabs{display:none}
+
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 35px)}
+.sidebar{background:var(--ink);color:#fff;padding:24px 18px;display:flex;flex-direction:column;gap:22px}
+.brand strong{display:block;font-size:16px}
+.brand small{color:#d9cdf2;font-size:12px}
+.spaces{display:flex;flex-direction:column;gap:6px}
+.space{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px;border-radius:10px;color:#ded3f1}
+.space .ico{width:28px;height:28px;border-radius:50%;border:1px solid #78638f;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.space strong{display:block;font-size:14px;font-weight:600}
+.space small{display:block;font-size:11px;opacity:.85}
+.space .count{margin-left:auto;background:#3a2551;border-radius:20px;padding:1px 8px;font-size:11px}
+.space[aria-current="page"]{background:var(--lav);color:var(--ink)}
+.space[aria-current="page"] .ico{background:var(--ink);color:#fff;border-color:var(--ink)}
+.space[aria-current="page"] .count{background:#fff}
+.side-note{margin-top:auto;font-size:11px;color:#cec0e3;border-top:1px solid #4a355e;padding-top:14px}
+
+.workspace{min-width:0;display:flex;flex-direction:column}
+
+/* Polkuviiva: missä vaiheessa ollaan */
+.where{position:sticky;top:var(--tabs-h);z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:14px 28px 12px}
+.where-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.where-name{font-weight:700;font-size:15px}
+.where-detail{font-size:12px;color:var(--muted)}
+.where-back{margin-left:auto;font-size:12px;color:var(--muted);border-bottom:1px solid #c8bdd8;padding:2px 0}
+.rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;list-style:none;margin:0;padding:0;counter-reset:r}
+.rail li{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;font-size:12px;color:var(--muted);padding:0 4px}
+.rail li::before{content:"";position:absolute;top:14px;left:-50%;width:100%;height:3px;background:var(--line);z-index:0}
+.rail li:first-child::before{display:none}
+.rail li.done::before,.rail li.current::before{background:var(--accent)}
+.rail .dot{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid var(--line);font-weight:700;font-size:13px;margin-bottom:5px}
+.rail li.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.rail li.current .dot{background:var(--lav);border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 4px #e3d9ff}
+.rail li.current{color:var(--ink);font-weight:700}
+.rail .here{display:inline-block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:#fff;border-radius:20px;padding:1px 8px;font-weight:700}
+.sub{display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;flex-wrap:wrap}
+.sub strong{font-weight:700}
+.bar{flex:1;min-width:120px;height:8px;border-radius:8px;background:#ece6f5;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:8px;transition:width .25s}
+
+.main{padding:26px 28px 40px;max-width:1100px;width:100%;flex:1}
+.page-head{margin-bottom:20px}
+.page-head .eyebrow{margin-bottom:6px}
+.page-head p{margin-top:8px;color:var(--muted);font-size:14px;max-width:640px}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0}
+.panel+.panel{margin-top:16px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.panel-head h3{font-size:15px}
+
+.btn{border:1px solid #d6ccdf;border-radius:8px;background:#fff;padding:10px 16px;font-weight:600;font-size:13px;display:inline-flex;gap:8px;align-items:center;justify-content:center;min-height:42px}
+.btn:hover:not(:disabled){background:#eee8f6}
+.btn.primary{background:var(--lav);border-color:var(--lav);color:var(--ink)}
+.btn.primary:hover:not(:disabled){background:#c8b6ff}
+.btn.big{min-height:50px;font-size:15px;padding:12px 22px}
+.btn.slim{min-height:34px;padding:6px 11px;font-size:12px}
+
+.badge{font-size:11px;padding:3px 9px;background:#eeeaf3;color:var(--muted);border-radius:30px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.badge.ok{background:var(--ok-tint);color:var(--ok)}
+.badge.warn{background:var(--warn-tint);color:var(--warn)}
+.badge.accent{background:var(--tint);color:var(--accent)}
+.badge.sim{background:var(--sim);color:#fff}
+
+/* Opiskelijalistat */
+.list{list-style:none;margin:0;padding:0}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 4px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row-name{font-weight:600}
+.row-detail{font-size:12px;color:var(--muted)}
+.mini{display:flex;gap:4px;align-items:center}
+.mini i{width:22px;height:6px;border-radius:4px;background:var(--line)}
+.mini i.done{background:var(--accent)}
+.mini i.current{background:var(--lav);outline:2px solid var(--ink);outline-offset:0}
+.mini-label{font-size:12px;color:var(--muted);margin-top:4px}
+.no-rows{color:var(--muted);font-size:13px;padding:8px 4px}
+.group-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:4px 0 6px;font-weight:700}
+
+/* Haastattelu */
+.iv{display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;align-items:start}
+.sections{list-style:none;margin:0;padding:0;position:sticky;top:150px}
+.sections button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 10px;border-radius:9px;font-size:14px;color:var(--muted)}
+.sections button:hover{background:#ebe5f4}
+.sections button[aria-current="step"]{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 1px 6px #1a053014;border:1px solid var(--line)}
+.sec-st{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:11px;font-weight:700;border:2px solid #cbbfdd;background:#fff;color:var(--muted)}
+.sec-st.partial{border-color:var(--lav);background:linear-gradient(90deg,var(--lav) 50%,#fff 50%)}
+.sec-st.full{border-color:var(--accent);background:var(--accent);color:#fff}
+.legend{font-size:11px;color:var(--muted);margin-top:12px;padding:0 10px;line-height:1.9}
+.legend .sec-st{display:inline-grid;width:13px;height:13px;vertical-align:-2px;margin-right:4px;border-width:2px}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
+.field{display:block;min-width:0}
+.field.full{grid-column:1/-1}
+.field>.lbl{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:5px;flex-wrap:wrap}
+.opt{font-size:11px;color:var(--muted);font-style:italic}
+.src{font-size:10px;background:var(--tint);color:var(--accent);border-radius:20px;padding:1px 7px;font-weight:600}
+.control{width:100%;border:1px solid #d6ccdf;border-radius:7px;background:#fff;padding:9px 10px;min-height:42px;min-width:0}
+textarea.control{resize:vertical;min-height:84px}
+.control.prefilled{background:#faf8ff;border-color:#cdbdf5}
+.field.missing .control{border:2px solid #c98a3c;background:var(--warn-tint);box-shadow:0 0 0 3px #f8e6cc}
+.miss-chip{font-size:10px;background:var(--warn);color:#fff;border-radius:20px;padding:1px 8px;font-weight:700;letter-spacing:.02em}
+.check-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:14px}
+.check-head.warn{background:var(--warn-tint);color:#73451b;border:1px solid #efd3ad}
+.check-head.good{background:var(--ok-tint);color:var(--ok);border:1px solid #d7e7dc}
+.check-head b{font-size:20px;font-family:Georgia,serif;font-weight:500}
+.check-head>span{flex:1 1 220px;min-width:0}
+.parts tr.missing td{background:var(--warn-tint)}
+.hint{font-size:12px;color:var(--muted);margin-top:5px}
+.note{border-left:3px solid var(--accent);padding:11px 14px;background:var(--tint);font-size:13px;border-radius:0 8px 8px 0}
+.note.warn{background:var(--warn-tint);border-color:#d1a46c;color:#73451b}
+.note.good{background:var(--ok-tint);border-color:#6c9d7a;color:var(--ok)}
+.note.sim{background:var(--sim-tint);border-color:var(--sim);color:var(--sim)}
+.note+.fields,.fields+.note,.note+.note{margin-top:14px}
+.notes{display:grid;gap:10px;margin-bottom:14px}
+.goes{margin-top:16px;font-size:12px;color:var(--muted)}
+.goes span{display:inline-block;background:#f1edf6;border-radius:5px;padding:2px 7px;margin:2px 4px 0 0;color:var(--ink)}
+
+.table-wrap{overflow-x:auto;max-width:100%}
+.parts{width:100%;border-collapse:collapse}
+.parts th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+.parts td{padding:8px;border-bottom:1px solid #eee8f3;vertical-align:middle;font-size:14px}
+.parts select{min-height:36px;padding:5px 8px}
+.parts input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+
+.summary{list-style:none;margin:0;padding:0}
+.summary li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 0;border-top:1px solid var(--line)}
+.summary li:first-child{border-top:0}
+.summary .ok{color:var(--ok);font-weight:700}
+.summary .miss{color:var(--warn);font-weight:700}
+.summary small{display:block;color:var(--muted);font-size:12px}
+
+.actions{position:sticky;bottom:0;z-index:6;background:#fff;border-top:1px solid var(--line);padding:12px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.actions .meta{font-size:12px;color:var(--muted)}
+.actions .right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.saved{display:inline-flex;align-items:center;gap:6px}
+.saved::before{content:"";width:7px;height:7px;border-radius:50%;background:#58a27a}
+kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#faf9fc}
+
+/* Hakijahaku */
+.search{display:flex;gap:10px;flex-wrap:wrap}
+.search .control{flex:1;min-width:200px}
+.cards{display:grid;gap:10px;margin-top:14px}
+.card{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:13px 14px;background:#fff;text-align:left;width:100%;cursor:pointer}
+.card:hover{border-color:var(--lav)}
+.card:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 2px #e3d9ff}
+.card .facts{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:3px}
+.card .facts b{color:var(--ink);font-weight:600}
+
+/* Siirto */
+.tr{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start}
+.forms{list-style:none;margin:0;padding:0}
+.forms li{display:flex;gap:10px;align-items:center;padding:10px;border-radius:9px;font-size:14px;color:var(--muted)}
+.forms li.current{background:#fff;color:var(--ink);font-weight:700;border:1px solid var(--line);box-shadow:0 1px 6px #1a053014}
+.forms li.done{color:var(--ink)}
+.forms .st{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:12px;font-weight:700;border:2px solid #cbbfdd;background:#fff}
+.forms li.done .st{background:var(--ok);border-color:var(--ok);color:#fff}
+.forms li.current .st{background:var(--lav);border-color:var(--ink)}
+.forms li.locked{opacity:.6}
+.forms small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.steps4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;margin:0 0 18px;padding:0}
+.steps4 li{border-radius:9px;padding:9px 10px;background:#f1edf6;font-size:12px;color:var(--muted);border:2px solid transparent}
+.steps4 li b{display:block;font-size:13px}
+.steps4 li.done{background:var(--ok-tint);color:var(--ok)}
+.steps4 li.current{background:#fff;border-color:var(--ink);color:var(--ink)}
+.steps4 li.you b::after{content:" · sinä";color:var(--accent)}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin:0}
+.readout dt{font-size:11px;color:var(--muted)}
+.readout dd{margin:0 0 4px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.readout .long{grid-column:1/-1}
+.turn{display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:12px;background:var(--warn-tint);border:1px solid #efd3ad;margin-bottom:16px;flex-wrap:wrap}
+.turn>div{flex:1 1 240px;min-width:0}
+.turn .big{font-size:26px;line-height:1}
+.turn h3{font-size:16px;color:#73451b}
+.turn p{font-size:13px;color:#73451b}
+.turn.ok{background:var(--ok-tint);border-color:#d7e7dc}
+.turn.ok h3,.turn.ok p{color:var(--ok)}
+.turn.info{background:var(--tint);border-color:#ddd2f7}
+.turn.info h3,.turn.info p{color:var(--ink)}
+.spinner{width:15px;height:15px;border:2px solid #ded2fa;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Vertailutaulukko: hyväksytty / tallennettu */
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th,.cmp td{text-align:left;padding:8px;border-bottom:1px solid #eee8f3;vertical-align:top;overflow-wrap:anywhere}
+.cmp thead th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line)}
+.cmp tbody th{font-weight:600;min-width:110px}
+.cmp tr.diff td,.cmp tr.diff th{background:var(--warn-tint)}
+.cmp td{white-space:pre-wrap}
+
+.boot{display:flex;gap:12px;align-items:center;padding:30px 0}
+.narrow-only{display:none}
+
+/* Chrome-paneeli */
+.chrome{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:#dfe3e8;border-left:1px solid #c9ced6;min-width:0}
+.chrome-bar{display:flex;align-items:center;gap:6px;padding:7px 8px;background:#e8ebef;border-bottom:1px solid #c9ced6}
+.cbtn{width:32px;height:32px;border-radius:50%;font-size:16px;color:#3c4043;display:grid;place-items:center;flex-shrink:0}
+.cbtn:hover{background:#d5d9de}
+.addr{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:#fff;border-radius:16px;padding:5px 12px;font-size:13px;color:#202124;border:1px solid #d6d9dd}
+.addr-chip{font-size:10px;font-weight:700;letter-spacing:.04em;background:#f0a43a;color:#1d1d1d;border-radius:10px;padding:1px 7px;flex-shrink:0}
+.addr-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addr-host{color:#5f6368}
+.chrome-note{padding:7px 12px;font-size:12px;background:#fff4e5;color:#73451b;border-bottom:1px solid #efd3ad}
+.chrome-body{position:relative;flex:1;min-height:0;background:#ebebeb}
+.chrome-body iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#ebebeb}
+.chrome-boot{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;color:#333;background:#ebebeb;font-size:14px}
+.chrome-boot.error{color:#73451b}
+
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+[hidden]{display:none!important}
+
+/* Kapea sovelluspalsta (palsta, ei ikkuna: Chrome-paneeli vie tilaa) */
+@container app (max-width:900px){
+ .shell{grid-template-columns:1fr;min-height:0}
+ .sidebar{flex-direction:row;align-items:center;padding:10px 14px;gap:12px;flex-wrap:wrap}
+ .brand small,.side-note,.space small{display:none}
+ .spaces{flex-direction:row;flex:1;min-width:0}
+ .space{padding:8px 10px}
+ .space .ico{display:none}
+ .actions{padding:10px 16px}
+ .where{padding:12px 16px 10px}
+ .main{padding:20px 16px 40px}
+ .iv,.tr{grid-template-columns:minmax(0,1fr)}
+ .iv>*,.tr>*{min-width:0}
+ .sections{position:static;display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+ .sections li{flex-shrink:0}
+ .sections button{padding:7px 9px;font-size:13px}
+ .sections .name{display:none}
+ .sections button[aria-current="step"] .name{display:inline}
+ .legend{display:none}
+ .forms{display:flex;gap:4px;overflow-x:auto}
+ .forms li{flex-shrink:0;padding:7px 8px}
+ .forms li:not(.current) .fname{display:none}
+ .forms small{display:none}
+ .row{grid-template-columns:1fr auto}
+ .row>.mini-wrap{grid-column:1/-1;grid-row:2}
+}
+@container app (max-width:620px){
+ .fields,.readout{grid-template-columns:1fr}
+ .field.full,.readout .long{grid-column:auto}
+ .rail li{font-size:11px}
+ .steps4{grid-template-columns:1fr 1fr}
+ h1{font-size:24px}
+ .control{font-size:16px}
+ .btn.big{min-height:46px;font-size:14px;padding:10px 14px}
+ .actions .right{margin-left:0;width:100%}
+ .actions .right .btn{flex:1 1 auto}
+}
+@container app (max-width:420px){
+ .space{padding:7px 8px;font-size:13px}
+ .space .count{display:none}
+ .rail .here{display:none}
+}
+
+/* Kapea ikkuna: välilehdet Sovellus | Wilma */
+@media(max-width:999px){
+ :root{--tabs-h:46px}
+ .split{grid-template-columns:minmax(0,1fr)}
+ .view-tabs{display:block;position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);height:46px}
+ .view-tabs [role=tablist]{display:grid;grid-template-columns:1fr 1fr;height:100%}
+ .view-tabs [role=tab]{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:3px solid transparent}
+ .view-tabs [role=tab][aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+ .tab-dot{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:#f0a43a;color:#1d1d1d;font-size:11px;font-weight:700;padding:0 5px}
+ body[data-view=app] .chrome{display:none}
+ body[data-view=wilma] .app-col{display:none}
+ .chrome{top:46px;height:calc(100vh - 46px);border-left:0}
+ .narrow-only{display:inline-flex}
+}
+@media(max-height:720px){
+ .where{padding-top:8px;padding-bottom:8px}
+ .where-top{margin-bottom:6px}
+ .rail .dot{width:24px;height:24px;font-size:11px;margin-bottom:2px}
+ .rail li::before{top:11px}
+ .rail .here{display:none}
+ .sub{margin-top:6px;padding-top:6px}
+ .sections{top:118px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Haastattelupolku</title>
+<!-- Klikattava prototyyppi suunnitelmasta docs/plans/haastattelupolku.md (2.11.2026).
+     Yksi tiedosto, ei ulkoisia riippuvuuksia, ei Python-kytkentää. Kaikki tiedot ovat keksittyjä.
+     Tyylit sovelluksen app.css:n muuttujista (HOKS-verkkodemon ilme). -->
+<style>
+:root{--ink:#1a0530;--muted:#655b73;--paper:#f5f3f8;--panel:#fff;--line:#e2ddeb;--accent:#775ec4;--lav:#9d7dff;--tint:#eee8ff;--ok:#28664b;--ok-tint:#edf5ef;--warn:#935916;--warn-tint:#fff4e5;--radius:14px;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper)}
+*{box-sizing:border-box}
+body{margin:0;font-size:15px;line-height:1.55;background:var(--paper)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+button:disabled{cursor:not-allowed;opacity:.45}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.03em}
+h1{font-size:30px;line-height:1.15}
+h2{font-size:22px;line-height:1.25}
+.muted{color:var(--muted)}.small{font-size:13px}
+.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:11px;font-weight:700;color:var(--accent)}
+
+.demo-bar{background:var(--ink);color:#f2edff;display:flex;justify-content:center;gap:9px;align-items:center;flex-wrap:wrap;padding:8px 16px;font-size:12px;border-bottom:1px solid #4a355e}
+.demo-bar strong{font-size:11px;letter-spacing:.11em}
+.demo-bar button{color:#d9cdf2;font-size:12px;text-decoration:underline}
+
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 35px)}
+.sidebar{background:var(--ink);color:#fff;padding:24px 18px;display:flex;flex-direction:column;gap:22px}
+.brand strong{display:block;font-size:16px}
+.brand small{color:#d9cdf2;font-size:12px}
+.spaces{display:flex;flex-direction:column;gap:6px}
+.space{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px;border-radius:10px;color:#ded3f1}
+.space .ico{width:28px;height:28px;border-radius:50%;border:1px solid #78638f;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.space strong{display:block;font-size:14px;font-weight:600}
+.space small{display:block;font-size:11px;opacity:.85}
+.space .count{margin-left:auto;background:#3a2551;border-radius:20px;padding:1px 8px;font-size:11px}
+.space[aria-current="page"]{background:var(--lav);color:var(--ink)}
+.space[aria-current="page"] .ico{background:var(--ink);color:#fff;border-color:var(--ink)}
+.space[aria-current="page"] .count{background:#fff}
+.side-note{margin-top:auto;font-size:11px;color:#cec0e3;border-top:1px solid #4a355e;padding-top:14px}
+
+.workspace{min-width:0;display:flex;flex-direction:column}
+
+/* Polkuviiva: missä vaiheessa ollaan */
+.where{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:14px 28px 12px}
+.where-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.where-name{font-weight:700;font-size:15px}
+.where-detail{font-size:12px;color:var(--muted)}
+.where-back{margin-left:auto;font-size:12px;color:var(--muted);border-bottom:1px solid #c8bdd8;padding:2px 0}
+.rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;list-style:none;margin:0;padding:0;counter-reset:r}
+.rail li{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;font-size:12px;color:var(--muted);padding:0 4px}
+.rail li::before{content:"";position:absolute;top:14px;left:-50%;width:100%;height:3px;background:var(--line);z-index:0}
+.rail li:first-child::before{display:none}
+.rail li.done::before,.rail li.current::before{background:var(--accent)}
+.rail .dot{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid var(--line);font-weight:700;font-size:13px;margin-bottom:5px}
+.rail li.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.rail li.current .dot{background:var(--lav);border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 4px #e3d9ff}
+.rail li.current{color:var(--ink);font-weight:700}
+.rail .here{display:inline-block;margin-top:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:#fff;border-radius:20px;padding:1px 8px;font-weight:700}
+.sub{display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;flex-wrap:wrap}
+.sub strong{font-weight:700}
+.bar{flex:1;min-width:120px;height:8px;border-radius:8px;background:#ece6f5;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:8px;transition:width .25s}
+
+.main{padding:26px 28px 120px;max-width:1100px;width:100%}
+.page-head{margin-bottom:20px}
+.page-head .eyebrow{margin-bottom:6px}
+.page-head p{margin-top:8px;color:var(--muted);font-size:14px;max-width:640px}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0}
+.panel+.panel{margin-top:16px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.panel-head h3{font-size:15px}
+
+.btn{border:1px solid #d6ccdf;border-radius:8px;background:#fff;padding:10px 16px;font-weight:600;font-size:13px;display:inline-flex;gap:8px;align-items:center;justify-content:center;min-height:42px}
+.btn:hover:not(:disabled){background:#eee8f6}
+.btn.primary{background:var(--lav);border-color:var(--lav);color:var(--ink)}
+.btn.primary:hover:not(:disabled){background:#c8b6ff}
+.btn.big{min-height:50px;font-size:15px;padding:12px 22px}
+.btn.slim{min-height:34px;padding:6px 11px;font-size:12px}
+
+.badge{font-size:11px;padding:3px 9px;background:#eeeaf3;color:var(--muted);border-radius:30px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.badge.ok{background:var(--ok-tint);color:var(--ok)}
+.badge.warn{background:var(--warn-tint);color:var(--warn)}
+.badge.accent{background:var(--tint);color:var(--accent)}
+
+/* Opiskelijalistat */
+.list{list-style:none;margin:0;padding:0}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 4px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row-name{font-weight:600}
+.row-detail{font-size:12px;color:var(--muted)}
+.mini{display:flex;gap:4px;align-items:center}
+.mini i{width:22px;height:6px;border-radius:4px;background:var(--line)}
+.mini i.done{background:var(--accent)}
+.mini i.current{background:var(--lav);outline:2px solid var(--ink);outline-offset:0}
+.mini-label{font-size:12px;color:var(--muted);margin-top:4px}
+.no-rows{color:var(--muted);font-size:13px;padding:8px 4px}
+.group-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:4px 0 6px;font-weight:700}
+
+/* Haastattelu */
+.iv{display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;align-items:start}
+.sections{list-style:none;margin:0;padding:0;position:sticky;top:150px}
+.sections button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 10px;border-radius:9px;font-size:14px;color:var(--muted)}
+.sections button:hover{background:#ebe5f4}
+.sections button[aria-current="step"]{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 1px 6px #1a053014;border:1px solid var(--line)}
+.sec-st{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:11px;font-weight:700;border:2px solid #cbbfdd;background:#fff;color:var(--muted)}
+.sec-st.partial{border-color:var(--lav);background:linear-gradient(90deg,var(--lav) 50%,#fff 50%)}
+.sec-st.full{border-color:var(--accent);background:var(--accent);color:#fff}
+.legend{font-size:11px;color:var(--muted);margin-top:12px;padding:0 10px;line-height:1.9}
+.legend .sec-st{display:inline-grid;width:13px;height:13px;vertical-align:-2px;margin-right:4px;border-width:2px}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
+.field{display:block;min-width:0}
+.field.full{grid-column:1/-1}
+.field>.lbl{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-bottom:5px;flex-wrap:wrap}
+.opt{font-size:11px;color:var(--muted);font-style:italic}
+.src{font-size:10px;background:var(--tint);color:var(--accent);border-radius:20px;padding:1px 7px;font-weight:600}
+.control{width:100%;border:1px solid #d6ccdf;border-radius:7px;background:#fff;padding:9px 10px;min-height:42px;min-width:0}
+textarea.control{resize:vertical;min-height:84px}
+.control.prefilled{background:#faf8ff;border-color:#cdbdf5}
+.field.missing .control{border:2px solid #c98a3c;background:var(--warn-tint);box-shadow:0 0 0 3px #f8e6cc}
+.miss-chip{font-size:10px;background:var(--warn);color:#fff;border-radius:20px;padding:1px 8px;font-weight:700;letter-spacing:.02em}
+.check-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:14px}
+.check-head.warn{background:var(--warn-tint);color:#73451b;border:1px solid #efd3ad}
+.check-head.good{background:var(--ok-tint);color:var(--ok);border:1px solid #d7e7dc}
+.check-head b{font-size:20px;font-family:Georgia,serif;font-weight:500}
+.check-head>span{flex:1 1 220px;min-width:0}
+.parts tr.missing td{background:var(--warn-tint)}
+.hint{font-size:12px;color:var(--muted);margin-top:5px}
+.note{border-left:3px solid var(--accent);padding:11px 14px;background:var(--tint);font-size:13px;border-radius:0 8px 8px 0}
+.note.warn{background:var(--warn-tint);border-color:#d1a46c;color:#73451b}
+.note.good{background:var(--ok-tint);border-color:#6c9d7a;color:var(--ok)}
+.note+.fields,.fields+.note,.note+.note{margin-top:14px}
+.goes{margin-top:16px;font-size:12px;color:var(--muted)}
+.goes span{display:inline-block;background:#f1edf6;border-radius:5px;padding:2px 7px;margin:2px 4px 0 0;color:var(--ink)}
+
+.parts{width:100%;border-collapse:collapse}
+.parts th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+.parts td{padding:8px;border-bottom:1px solid #eee8f3;vertical-align:middle;font-size:14px}
+.parts select{min-height:36px;padding:5px 8px}
+.parts input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+
+.summary{list-style:none;margin:0;padding:0}
+.summary li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 0;border-top:1px solid var(--line)}
+.summary li:first-child{border-top:0}
+.summary .ok{color:var(--ok);font-weight:700}
+.summary .miss{color:var(--warn);font-weight:700}
+.summary small{display:block;color:var(--muted);font-size:12px}
+
+.actions{position:fixed;left:250px;right:0;bottom:0;z-index:6;background:#fff;border-top:1px solid var(--line);padding:12px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.actions .meta{font-size:12px;color:var(--muted)}
+.actions .right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.saved{display:inline-flex;align-items:center;gap:6px}
+.saved::before{content:"";width:7px;height:7px;border-radius:50%;background:#58a27a}
+kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#faf9fc}
+
+/* Hakijahaku */
+.search{display:flex;gap:10px;flex-wrap:wrap}
+.search .control{flex:1;min-width:200px}
+.cards{display:grid;gap:10px;margin-top:14px}
+.card{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:13px 14px;background:#fff;text-align:left;width:100%}
+.card:hover{border-color:var(--lav)}
+.card .facts{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:3px}
+.card .facts b{color:var(--ink);font-weight:600}
+
+/* Siirto */
+.tr{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start}
+.forms{list-style:none;margin:0;padding:0}
+.forms li{display:flex;gap:10px;align-items:center;padding:10px;border-radius:9px;font-size:14px;color:var(--muted)}
+.forms li.current{background:#fff;color:var(--ink);font-weight:700;border:1px solid var(--line);box-shadow:0 1px 6px #1a053014}
+.forms li.done{color:var(--ink)}
+.forms .st{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:12px;font-weight:700;border:2px solid #cbbfdd;background:#fff}
+.forms li.done .st{background:var(--ok);border-color:var(--ok);color:#fff}
+.forms li.current .st{background:var(--lav);border-color:var(--ink)}
+.forms li.locked{opacity:.6}
+.forms small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.steps4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;margin:0 0 18px;padding:0}
+.steps4 li{border-radius:9px;padding:9px 10px;background:#f1edf6;font-size:12px;color:var(--muted);border:2px solid transparent}
+.steps4 li b{display:block;font-size:13px}
+.steps4 li.done{background:var(--ok-tint);color:var(--ok)}
+.steps4 li.current{background:#fff;border-color:var(--ink);color:var(--ink)}
+.steps4 li.you b::after{content:" · sinä";color:var(--accent)}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin:0}
+.readout dt{font-size:11px;color:var(--muted)}
+.readout dd{margin:0 0 4px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.readout .long{grid-column:1/-1}
+.turn{display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:12px;background:var(--warn-tint);border:1px solid #efd3ad;margin-bottom:16px}
+.turn .big{font-size:26px}
+.turn h3{font-size:16px;color:#73451b}
+.turn p{font-size:13px;color:#73451b}
+.turn.ok{background:var(--ok-tint);border-color:#d7e7dc}
+.turn.ok h3,.turn.ok p{color:var(--ok)}
+.spinner{width:15px;height:15px;border:2px solid #ded2fa;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+[hidden]{display:none!important}
+
+/* Kapea ikkuna videopuhelun vieressä */
+@media(max-width:900px){
+ .shell{grid-template-columns:1fr}
+ .sidebar{flex-direction:row;align-items:center;padding:10px 14px;gap:12px;flex-wrap:wrap}
+ .brand small,.side-note,.space small{display:none}
+ .spaces{flex-direction:row;flex:1}
+ .space{padding:8px 10px}
+ .space .ico{display:none}
+ .actions{left:0;padding:10px 16px}
+ .where{padding:12px 16px 10px}
+ .main{padding:20px 16px 130px}
+ .iv,.tr{grid-template-columns:1fr}
+ .sections{position:static;display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+ .sections li{flex-shrink:0}
+ .sections button{padding:7px 9px;font-size:13px}
+ .sections .name{display:none}
+ .sections button[aria-current="step"] .name{display:inline}
+ .legend{display:none}
+ .forms{display:flex;gap:4px;overflow-x:auto}
+ .forms li{flex-shrink:0;padding:7px 8px}
+ .forms li:not(.current) .fname{display:none}
+ .forms small{display:none}
+ .row{grid-template-columns:1fr auto}
+ .row>.mini-wrap{grid-column:1/-1;grid-row:2}
+}
+@media(max-width:620px){
+ .fields,.readout{grid-template-columns:1fr}
+ .field.full,.readout .long{grid-column:auto}
+ .rail li{font-size:11px}
+ .rail .lbl-long{display:none}
+ .steps4{grid-template-columns:1fr 1fr}
+ h1{font-size:24px}
+ .control{font-size:16px}
+}
+@media(max-height:720px){
+ .where{padding-top:8px;padding-bottom:8px}
+ .where-top{margin-bottom:6px}
+ .rail .dot{width:24px;height:24px;font-size:11px;margin-bottom:2px}
+ .rail li::before{top:11px}
+ .rail .here{display:none}
+ .sub{margin-top:6px;padding-top:6px}
+ .sections{top:118px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="demo-bar"><strong>PROTOTYYPPI</strong><span>Haastattelupolku · kaikki tiedot keksittyjä · Wilmaan ei kirjoiteta</span><button id="reset">Palauta alkutilaan</button></div>
+<div class="shell">
+ <aside class="sidebar">
+  <div class="brand"><strong>Oppisopimustäyttäjä</strong><small>Haastattelu ja Wilma-siirto</small></div>
+  <nav class="spaces" aria-label="Työtilat" id="spaces"></nav>
+  <div class="side-note">Haastattelu ei tarvitse Wilmaa. Siirto tehdään myöhemmin, kun hakijasta on tullut opiskelija. Tallennuksen Wilmassa teet aina itse.</div>
+ </aside>
+ <div class="workspace">
+  <div class="where" id="where" hidden></div>
+  <main class="main" id="main"></main>
+ </div>
+</div>
+<div class="actions" id="actions" hidden></div>
+<div class="sr-only" role="status" aria-live="polite" id="announcer"></div>
+
+<script>
+'use strict';
+
+// ---- Keksitty data ----
+const QUALIFICATIONS = [
+  'Liiketoiminnan perustutkinto',
+  'Liiketoiminnan ammattitutkinto',
+  'Tieto- ja viestintätekniikan perustutkinto',
+  'Johtamisen ja yritysjohtamisen erikoisammattitutkinto',
+];
+const PARTS = [
+  {code: 'OSA-1', name: 'Asiakaspalvelu ja myynti'},
+  {code: 'OSA-2', name: 'Markkinointiviestintä'},
+  {code: 'OSA-3', name: 'Taloushallinnon tehtävät'},
+  {code: 'OSA-4', name: 'Tuotteen hankinta'},
+];
+const CONTRACT_TYPES = ['Oppisopimus', 'Yrittäjän oppisopimus', 'Koulutussopimus'];
+const YEARS = ['2026–2027', '2027–2028'];
+const PERIODS = ['1', '2', '3', '4', '5'];
+const APPLICANTS = [
+  {name: 'Leo Demo', qual: 'Liiketoiminnan perustutkinto', employer: 'Esimerkkikauppa Oy', businessId: '1234567-8'},
+  {name: 'Leena Demonen', qual: 'Tieto- ja viestintätekniikan perustutkinto', employer: 'Kuvitteellinen Data Oy', businessId: '7654321-0'},
+];
+
+// Haastattelun osiot keskustelun järjestyksessä. Kenttäavaimet vastaavat profiilin loogisia avaimia.
+const SECTIONS = [
+  {id: 'perus', title: 'Perustiedot', lead: 'Kuka hakija on, mihin tutkintoon hän hakee ja millä sopimuksella.', goes: ['Opiskelijan sidonta', 'Henkilökohtaistaminen', 'Oppisopimus'], fields: [
+    {k: 'name', label: 'Nimi', full: true},
+    {k: 'qual', label: 'Haettava tutkinto', type: 'select', options: QUALIFICATIONS, full: true, hint: 'Avoimet koulutukset. Esitäytetty hakijatiedoista, vaihda tarvittaessa.'},
+    {k: 'contractType', label: 'Sopimusmuoto', type: 'select', options: CONTRACT_TYPES, full: true, hint: 'Ratkaisee, mikä sopimuslomake Wilmaan täytetään.'},
+    {k: 'start', label: 'Opiskeluaika alkaa', type: 'date'},
+    {k: 'end', label: 'Opiskeluaika päättyy', type: 'date'},
+  ]},
+  {id: 'tyopaikka', title: 'Työpaikka', lead: 'Kysy ensin Y-tunnus. Samalla Y-tunnuksella voi olla useita toimipaikkoja, joten varmista toimipaikka.', goes: ['Työpaikkarekisteri', 'Oppisopimus'], fields: [
+    {k: 'businessId', label: 'Y-tunnus', hint: 'Muoto 1234567-8'},
+    {k: 'employer', label: 'Työpaikan nimi'},
+    {k: 'street', label: 'Toimipaikan lähiosoite', full: true},
+    {k: 'postal', label: 'Postinumero ja -toimipaikka'},
+    {k: 'municipality', label: 'Paikkakunta'},
+    {k: 'wpPhone', label: 'Puhelin', optional: true},
+    {k: 'wpEmail', label: 'Sähköposti', optional: true},
+  ]},
+  {id: 'ohjaaja', title: 'Ohjaaja', lead: 'Kuka ohjaa opiskelijaa työpaikalla? Yhteyshenkilö vain, jos se on eri henkilö.', goes: ['Ohjaajarekisteri', 'Oppisopimus'], fields: [
+    {k: 'insName', label: 'Työpaikkaohjaajan nimi', full: true},
+    {k: 'insPhone', label: 'Puhelin'},
+    {k: 'insEmail', label: 'Sähköposti'},
+    {k: 'contact', label: 'Työpaikan yhteyshenkilö', optional: true, full: true, hint: 'Jätä tyhjäksi, jos sama kuin ohjaaja.'},
+  ]},
+  {id: 'sopimus', title: 'Oppisopimus', lead: 'Sopimuksen ehdot. Palkkauksen voi jättää myöhemmäksi.', goes: ['Oppisopimus'], fields: [
+    {k: 'tasks', label: 'Työtehtävät', type: 'textarea', full: true},
+    {k: 'hours', label: 'Työaika (h/vko)', hint: 'Keskimäärin vähintään 25 h/vko'},
+    {k: 'partTime', label: 'Osa-aikaisuus (%)', optional: true},
+    {k: 'trialStart', label: 'Koeaika alkaa', type: 'date'},
+    {k: 'trialEnd', label: 'Koeaika päättyy', type: 'date'},
+    {k: 'salary', label: 'Palkkaus alkaessa (€)', optional: true},
+    {k: 'signed', label: 'Sopimuksen solmimispäivä', type: 'date'},
+  ]},
+  {id: 'osat', title: 'Tutkinnon osat', lead: 'Mitkä osat tehdään ja milloin. Osan pitää olla HOKSissa ennen kuin se voidaan aikatauluttaa Wilmassa.', goes: ['Tutkintokoulutuksen suunnittelu', 'Näyttösuunnitelmat'], parts: true},
+  {id: 'naytot', title: 'Näytöt', lead: 'Alustavat tiedot näyttösuunnitelmiin. Usein tarkentuvat myöhemmin; voit ohittaa osion.', goes: ['Näyttösuunnitelmat'], fields: [
+    {k: 'demoEnv', label: 'Näyttöympäristö (työpaikka ja tehtävät)', type: 'textarea', full: true, optional: true},
+    {k: 'demoTiming', label: 'Näyttöjen alustava ajankohta', optional: true, full: true, hint: 'Näytön arviointia sovellus ei täytä.'},
+  ]},
+  {id: 'ura', title: 'Urasuunnitelma', lead: 'Opiskelijan omat suunnitelmat. Kirjaa hänen sanoillaan.', goes: ['Urasuunnitelma (13)'], fields: [
+    {k: 'further', label: 'Jatko-opinnot', type: 'textarea', full: true},
+    {k: 'working', label: 'Työelämään siirtyminen', type: 'textarea', full: true},
+    {k: 'career', label: 'Uralla eteneminen', type: 'textarea', full: true, optional: true},
+    {k: 'docDate', label: 'Laatimispäivä', type: 'date', hint: 'Esitäytetty haastattelun päivästä'},
+    {k: 'participants', label: 'Laatimiseen osallistuneet', hint: 'Esitäytetty: hakija ja haastattelija'},
+  ]},
+  {id: 'yhteenveto', title: 'Yhteenveto', lead: 'Mitä kullekin Wilman lomakkeelle on kertynyt. Puuttuvat tiedot voi täydentää nyt tai myöhemmin.', summary: true},
+];
+
+// Wilman lomakkeet siirtojärjestyksessä (issue #19, Matin lomakelista 2.11.2026) ja niiden vaatimat
+// haastattelukentät. Työpaikka ja ohjaaja ovat rekisterejä, joita sopimuslomake tarvitsee.
+// open: kohta, joka on vielä selvitettävä (#19). Sopimuslomake riippuu sopimusmuodosta.
+const FORMS = [
+  {id: 'sidonta', title: 'Opiskelijan sidonta', what: 'Etsitään hakija Wilmasta opiskelijana', needs: ['name']},
+  {id: 'hk', title: 'Henkilökohtaistaminen', what: 'Opintojen alku- ja loppupäivämäärä', needs: ['start', 'end'], open: 'Lomake kartoittamatta (#19).'},
+  {id: 'tyopaikka', title: 'Työpaikka', what: 'Rekisteri: haku Y-tunnuksella, uusi vain jos ei löydy', needs: ['businessId', 'employer'], group: 'Rekisteri'},
+  {id: 'ohjaaja', title: 'Työpaikkaohjaaja', what: 'Rekisteri: työpaikan alle', needs: ['insName'], group: 'Rekisteri'},
+  {id: 'sopimus', title: 'Oppisopimus', what: 'Sopimuslomake sopimusmuodon mukaan', needs: ['contractType', 'qual', 'start', 'end', 'tasks', 'hours', 'signed']},
+  {id: 'polku', title: 'Tutkintokoulutuksen suunnittelu', what: 'Tutkinnon osien lukuvuosi ja jakso', needs: ['@parts'], open: 'Onko tämä Wilman opintopolku? Selvitettävä (#19).'},
+  {id: 'ura', title: 'Urasuunnitelma (13)', what: 'Uusi urasuunnitelma', needs: ['further', 'working']},
+  {id: 'naytot', title: 'Näyttösuunnitelmat', what: 'Suunnitelmaosa tutkinnon osittain. Arviointiosaa sovellus ei täytä.', needs: ['@parts', 'demoEnv']},
+];
+function formTitle(st, f) { return f.id === 'sopimus' && st && st.v.contractType ? st.v.contractType : f.title; }
+function formUnsupported(st, f) { return f.id === 'sopimus' && st && st.v.contractType && st.v.contractType !== 'Oppisopimus'; }
+const FIELD = {};
+SECTIONS.forEach(s => (s.fields || []).forEach(f => { FIELD[f.k] = f; }));
+// Kunkin lomakkeen tarkistusnäkymän kentät (pakolliset = FORMS.needs).
+const PICK = {
+  sidonta: ['name', 'qual'], hk: ['start', 'end'], tyopaikka: ['businessId', 'employer', 'street', 'postal', 'municipality', 'wpPhone', 'wpEmail'],
+  ohjaaja: ['insName', 'insPhone', 'insEmail', 'contact'], sopimus: ['contractType', 'qual', 'start', 'end', 'tasks', 'hours', 'partTime', 'trialStart', 'trialEnd', 'salary', 'signed'],
+  polku: ['@parts'], ura: ['further', 'working', 'career', 'docDate', 'participants'], naytot: ['@parts', 'demoEnv', 'demoTiming'],
+};
+const LABELS = {};
+SECTIONS.forEach(s => (s.fields || []).forEach(f => { LABELS[f.k] = f.label; }));
+LABELS['@parts'] = 'vähintään yksi tutkinnon osa aikataulutettuna';
+
+const PHASES = [
+  {id: 'interview', short: 'Haastattelu', long: 'Haastattelu'},
+  {id: 'waiting', short: 'Opiskelijaksi', long: 'Odottaa opiskelijaksi Wilmaan'},
+  {id: 'transfer', short: 'Siirto', long: 'Siirto Wilmaan'},
+  {id: 'done', short: 'Valmis', long: 'Valmis'},
+];
+
+function today() { const d = new Date(); return `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`; }
+
+function initialState() {
+  return {
+    space: 'interviews', screen: 'list', studentId: null, search: null, busy: false,
+    students: [
+      {id: 's1', phase: 'interview', section: 2, savedAt: '9.42', prefilled: ['name', 'qual', 'contractType', 'employer', 'businessId'],
+        v: {name: 'Aino Esimerkki', qual: 'Liiketoiminnan perustutkinto', contractType: 'Oppisopimus', start: '1.12.2026', end: '30.11.2028', businessId: '2345678-9', employer: 'Mallikahvila Oy', street: 'Esimerkkikatu 1', postal: '00100 Kaupunki', municipality: 'Kaupunki'},
+        parts: {}, transfer: null},
+      {id: 's2', phase: 'waiting', section: 6, savedAt: 'eilen', prefilled: ['name', 'qual', 'employer', 'businessId'],
+        v: {name: 'Ville Malli', qual: 'Liiketoiminnan ammattitutkinto', contractType: 'Oppisopimus', demoEnv: 'Myymälä, asiakaspalvelu ja kassatyö', demoTiming: 'Kevät 2027', start: '15.11.2026', end: '14.11.2027', businessId: '3456789-0', employer: 'Testitalo Oy', street: 'Koekuja 3', postal: '00200 Kaupunki', municipality: 'Kaupunki', insName: 'Olli Ohjaaja', insPhone: '040 000 0000', insEmail: 'ohjaaja@example.invalid', tasks: 'Myynti ja asiakaspalvelu', trialStart: '15.11.2026', trialEnd: '14.5.2027', signed: '10.11.2026', further: 'Ei suunnitelmia nyt.', working: 'Jatkaa nykyisessä työpaikassa.', docDate: '1.11.2026', participants: 'Hakija ja haastattelija'},
+        parts: {'OSA-1': {on: true, year: YEARS[0], period: '3'}}, transfer: null},
+      {id: 's3', phase: 'transfer', section: 6, savedAt: '29.10.', prefilled: ['name', 'qual'],
+        v: {name: 'Sanni Koe', qual: 'Tieto- ja viestintätekniikan perustutkinto', contractType: 'Oppisopimus', demoEnv: 'Tukipalvelun palvelupiste', demoTiming: 'Syksy 2027', start: '1.11.2026', end: '31.10.2028', businessId: '4567890-1', street: 'Mallitie 5', postal: '00300 Kaupunki', municipality: 'Kaupunki', insName: 'Kaisa Kouluttaja', insPhone: '040 111 1111', insEmail: 'kaisa@example.invalid', tasks: 'Tukipalvelut', hours: '38', trialStart: '1.11.2026', trialEnd: '30.4.2027', signed: '25.10.2026', further: 'Ammattikorkeakoulu myöhemmin.', working: 'Vakituinen paikka nykyisessä työpaikassa.', docDate: '29.10.2026', participants: 'Hakija ja haastattelija'},
+        parts: {'OSA-2': {on: true, year: YEARS[0], period: '2'}}, transfer: {done: 2, step: 0}},
+    ],
+  };
+}
+let state = initialState();
+
+// ---- Apufunktiot ----
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const cur = () => state.students.find(s => s.id === state.studentId);
+const filled = (st, k) => k === '@parts' ? Object.values(st.parts).some(p => p.on && p.year && p.period) : !!String(st.v[k] || '').trim();
+function announce(t) { $('#announcer').textContent = t; }
+
+function sectionStatus(st, sec) {
+  if (sec.summary) return null;
+  if (sec.parts) return filled(st, '@parts') ? 'full' : 'empty';
+  const req = sec.fields.filter(f => !f.optional);
+  const n = req.filter(f => filled(st, f.k)).length;
+  return n === 0 ? 'empty' : (n === req.length ? 'full' : 'partial');
+}
+function formMissing(st, form) { return form.needs.filter(k => !filled(st, k)); }
+function phaseIndex(st) { return PHASES.findIndex(p => p.id === st.phase); }
+function phaseText(st) {
+  if (st.phase === 'interview') return `Haastattelu kesken · osio ${st.section + 1}/${SECTIONS.length}`;
+  if (st.phase === 'waiting') return 'Odottaa opiskelijaksi Wilmaan';
+  if (st.phase === 'transfer') return `Siirto kesken · lomake ${st.transfer.done + 1}/${FORMS.length}`;
+  return 'Kaikki lomakkeet varmennettu';
+}
+function nowTime() { const d = new Date(); return `${d.getHours()}.${String(d.getMinutes()).padStart(2, '0')}`; }
+
+// ---- Renderöinti ----
+function render() {
+  renderSpaces();
+  renderWhere();
+  const st = cur();
+  let html = '';
+  if (state.screen === 'new') html = viewNew();
+  else if (state.screen === 'interview' && st) html = viewInterview(st);
+  else if (state.screen === 'transfer' && st) html = viewTransfer(st);
+  else html = state.space === 'interviews' ? viewInterviewList() : viewTransferList();
+  $('#main').innerHTML = html;
+  renderActions();
+}
+
+function renderSpaces() {
+  const ivCount = state.students.filter(s => s.phase === 'interview').length;
+  const trCount = state.students.filter(s => s.phase === 'waiting' || s.phase === 'transfer').length;
+  const item = (id, ico, title, small, count) =>
+    `<button class="space" data-space="${id}"${state.space === id ? ' aria-current="page"' : ''}><span class="ico">${ico}</span><span><strong>${title}</strong><small>${small}</small></span><span class="count">${count}</span></button>`;
+  $('#spaces').innerHTML = item('interviews', '1', 'Haastattelut', 'Kirjaa tiedot keskustelussa', ivCount) +
+    item('transfer', '2', 'Siirto Wilmaan', 'Lomake kerrallaan', trCount);
+}
+
+// Polkuviiva: aina näkyvissä, kun opiskelija on auki.
+function renderWhere() {
+  const st = cur();
+  const el = $('#where');
+  if (!st || state.screen === 'list' || state.screen === 'new') { el.hidden = true; return; }
+  el.hidden = false;
+  const pi = phaseIndex(st);
+  const rail = PHASES.map((p, i) => {
+    const cls = i < pi ? 'done' : (i === pi ? 'current' : '');
+    return `<li class="${cls}"${i === pi ? ' aria-current="step"' : ''}><span class="dot">${i < pi ? '✓' : i + 1}</span><span><span class="lbl-short">${esc(p.short)}</span></span>${i === pi ? '<span class="here">Olet tässä</span>' : ''}</li>`;
+  }).join('');
+  let sub = '';
+  if (state.screen === 'interview') {
+    const sec = SECTIONS[st.section];
+    const doneN = SECTIONS.filter(s => sectionStatus(st, s) === 'full').length;
+    sub = `<div class="sub"><span>Osio <strong>${st.section + 1}/${SECTIONS.length}</strong>: <strong>${esc(sec.title)}</strong></span><div class="bar" aria-hidden="true"><span style="width:${Math.round((st.section + 1) / SECTIONS.length * 100)}%"></span></div><span class="muted">${doneN}/${SECTIONS.length - 1} osiota valmiina</span></div>`;
+  } else if (state.screen === 'transfer' && st.phase !== 'done') {
+    const f = FORMS[st.transfer ? st.transfer.done : 0];
+    const n = st.transfer ? st.transfer.done : 0;
+    sub = `<div class="sub"><span>Lomake <strong>${n + 1}/${FORMS.length}</strong>: <strong>${esc(formTitle(st, f))}</strong></span><div class="bar" aria-hidden="true"><span style="width:${Math.round(n / FORMS.length * 100)}%"></span></div><span class="muted">${n}/${FORMS.length} varmennettu</span></div>`;
+  }
+  const back = state.space === 'interviews' ? 'Kaikki haastattelut' : 'Siirtojono';
+  el.innerHTML = `<div class="where-top"><span class="where-name">${esc(st.v.name || 'Uusi hakija')}</span><span class="where-detail">${esc(st.v.qual || '')}</span><button class="where-back" data-go="list">← ${back}</button></div><ol class="rail" aria-label="Opiskelijan polku">${rail}</ol>${sub}`;
+}
+
+function miniRail(st) {
+  const pi = phaseIndex(st);
+  return `<div class="mini-wrap"><div class="mini" aria-hidden="true">${PHASES.map((p, i) => `<i class="${i < pi ? 'done' : (i === pi ? 'current' : '')}"></i>`).join('')}</div><div class="mini-label">${esc(phaseText(st))}</div></div>`;
+}
+
+function viewInterviewList() {
+  const open = state.students.filter(s => s.phase === 'interview');
+  const ready = state.students.filter(s => s.phase !== 'interview');
+  const row = (st, btn) => `<li class="row"><div><div class="row-name">${esc(st.v.name)}</div><div class="row-detail">${esc(st.v.qual)} · tallennettu ${esc(st.savedAt)}</div></div>${miniRail(st)}${btn}</li>`;
+  return `<header class="page-head"><div class="eyebrow">Työtila 1 · Haastattelut</div><h1>Haastattelut</h1><p>Kirjaa tiedot keskustelun aikana. Wilmaa ei tarvita, ja kaikki tallentuu tälle koneelle heti.</p></header>
+  <div class="panel"><div class="panel-head"><h3>Aloita</h3></div><button class="btn primary big" data-go="new">+ Uusi haastattelu</button></div>
+  <div class="panel"><div class="group-title">Kesken</div><ul class="list">${open.map(s => row(s, `<button class="btn primary" data-open="${s.id}">Jatka</button>`)).join('') || '<li class="no-rows">Ei keskeneräisiä haastatteluja.</li>'}</ul></div>
+  <div class="panel"><div class="group-title">Haastateltu</div><ul class="list">${ready.map(s => row(s, `<button class="btn" data-open-iv="${s.id}">Avaa</button>`)).join('')}</ul></div>`;
+}
+
+function viewNew() {
+  const s = state.search;
+  let results = '';
+  if (s && s.done) {
+    const hits = APPLICANTS.filter(a => a.name.toLowerCase().includes(s.q.toLowerCase()));
+    results = hits.length
+      ? `<div class="cards">${hits.map((a, i) => `<button class="card" data-pick="${APPLICANTS.indexOf(a)}"><span><strong>${esc(a.name)}</strong><span class="facts"><span>Hakee: <b>${esc(a.qual)}</b></span><span>Työpaikka: <b>${esc(a.employer)}</b></span><span>Y-tunnus: <b>${esc(a.businessId)}</b></span></span></span></button>`).join('')}</div><p class="small muted" style="margin-top:10px">Valitse oikea hakija. Nimi, tutkinto, työpaikka ja Y-tunnus esitäytetään.</p>`
+      : `<div class="note warn" style="margin-top:14px">Hakijaa ei löytynyt. Voit aloittaa haastattelun ilman esitäyttöä ja kirjoittaa tiedot itse.</div>`;
+  } else if (s && s.busy) {
+    results = `<p class="small muted" style="margin-top:12px"><span class="spinner"></span> Haetaan Wilman hakijoista…</p>`;
+  }
+  return `<header class="page-head"><div class="eyebrow">Uusi haastattelu · ennen osiota 1</div><h1>Kenen kanssa puhut?</h1><p>Hae hakija Wilmasta, niin perustiedot esitäytetään. Haku vain lukee Wilmaa. Kokeile esimerkiksi ”Leo”.</p></header>
+  <div class="panel"><div class="panel-head"><h3>Hae hakija Wilmasta</h3><span class="badge accent">Vain luku</span></div>
+  <div class="search"><label class="sr-only" for="q">Hakijan nimi</label><input class="control" id="q" placeholder="Hakijan nimi" value="${esc(s ? s.q : '')}" autocomplete="off"><button class="btn primary" id="do-search">Hae</button></div>${results}</div>
+  <div class="panel"><div class="panel-head"><h3>Tai aloita ilman esitäyttöä</h3></div><p class="small muted" style="margin-bottom:12px">Esimerkiksi kun hakija ei vielä näy Wilmassa tai tiedot ladataan myöhemmin muualta.</p><button class="btn" id="blank">Aloita tyhjästä</button></div>`;
+}
+
+function fieldHtml(st, f, missing) {
+  const val = st.v[f.k] || '';
+  const pre = st.prefilled.includes(f.k) && val;
+  const cls = 'control' + (pre ? ' prefilled' : '');
+  let ctl;
+  if (f.type === 'select') ctl = `<select class="${cls}" id="f-${f.k}" data-k="${f.k}"><option value="">Valitse…</option>${f.options.map(o => `<option${o === val ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  else if (f.type === 'textarea') ctl = `<textarea class="${cls}" id="f-${f.k}" data-k="${f.k}" rows="3">${esc(val)}</textarea>`;
+  else ctl = `<input class="${cls}" id="f-${f.k}" data-k="${f.k}" value="${esc(val)}"${f.type === 'date' ? ' placeholder="pp.kk.vvvv" inputmode="numeric"' : ''} autocomplete="off">`;
+  return `<label class="field${f.full ? ' full' : ''}${missing ? ' missing' : ''}" for="f-${f.k}" data-field="${f.k}"><span class="lbl">${esc(f.label)}${missing ? '<span class="miss-chip">Puuttuu</span>' : ''}${f.optional ? '<span class="opt">valinnainen</span>' : ''}${pre ? '<span class="src">Hakijatiedoista</span>' : ''}</span>${ctl}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</label>`;
+}
+
+function partsHtml(st, highlight) {
+  const rows = PARTS.map(p => {
+    const v = st.parts[p.code] || {};
+    const rowMissing = highlight && v.on && !(v.year && v.period);
+    return `<tr${rowMissing ? ' class="missing"' : ''}><td><input type="checkbox" data-part="${p.code}" data-pk="on"${v.on ? ' checked' : ''} aria-label="${esc(p.name)}"></td><td>${esc(p.name)}</td><td><select class="control" data-part="${p.code}" data-pk="year"${v.on ? '' : ' disabled'} aria-label="Lukuvuosi"><option value="">–</option>${YEARS.map(y => `<option${y === v.year ? ' selected' : ''}>${y}</option>`).join('')}</select></td><td><select class="control" data-part="${p.code}" data-pk="period"${v.on ? '' : ' disabled'} aria-label="Jakso"><option value="">–</option>${PERIODS.map(y => `<option${y === v.period ? ' selected' : ''}>${y}</option>`).join('')}</select></td></tr>`;
+  }).join('');
+  const none = highlight && !filled(st, '@parts') ? '<div class="check-head warn" style="margin-bottom:10px"><span class="miss-chip">Puuttuu</span> Valitse vähintään yksi osa ja sille lukuvuosi ja jakso.</div>' : '';
+  return `${none}<table class="parts"><thead><tr><th></th><th>Tutkinnon osa</th><th>Lukuvuosi</th><th>Jakso</th></tr></thead><tbody>${rows}</tbody></table><div class="hint">Jaksot tulevat oppilaitoksen jaksojärjestelmästä. Jaksoa ”muu” ei käytetä.</div>`;
+}
+
+function summaryHtml(st) {
+  const items = FORMS.map(f => {
+    const miss = formMissing(st, f);
+    return `<li><span class="${miss.length ? 'miss' : 'ok'}">${miss.length ? '!' : '✓'}</span><span><strong>${esc(formTitle(st, f))}</strong><small>${formUnsupported(st, f) ? 'Ei vielä tuettu: tehdään käsin Wilmassa. ' : ''}${miss.length ? 'Puuttuu: ' + miss.map(k => esc(LABELS[k] || k)).join(', ') : 'Valmis siirtoon'}</small></span>${miss.length ? `<button class="btn slim" data-jump-field="${esc(miss[0])}">Täydennä</button>` : '<span class="badge ok">Valmis</span>'}</li>`;
+  }).join('');
+  const missingAny = FORMS.some(f => formMissing(st, f).length);
+  return `<ul class="summary">${items}</ul>${missingAny ? '<div class="note warn" style="margin-top:14px">Voit merkitä haastattelun valmiiksi, vaikka tietoja puuttuu. Puuttuvat tiedot kysytään ennen kyseisen lomakkeen siirtoa.</div>' : '<div class="note good" style="margin-top:14px">Kaikki lomakkeet ovat valmiita siirtoon.</div>'}`;
+}
+
+function viewInterview(st) {
+  const sec = SECTIONS[st.section];
+  const nav = SECTIONS.map((s, i) => {
+    const ss = sectionStatus(st, s);
+    const mark = s.summary ? '≡' : (ss === 'full' ? '✓' : '');
+    return `<li><button data-sec="${i}"${i === st.section ? ' aria-current="step"' : ''}><span class="sec-st ${ss || ''}" data-secst="${i}">${mark || i + 1}</span><span class="name">${esc(s.title)}</span></button></li>`;
+  }).join('');
+  let body;
+  if (sec.summary) body = summaryHtml(st);
+  else if (sec.parts) body = partsHtml(st);
+  else body = `<div class="fields">${sec.fields.map(f => fieldHtml(st, f)).join('')}</div>`;
+  const readonly = st.phase !== 'interview' ? '<div class="note" style="margin-bottom:14px">Haastattelu on merkitty valmiiksi. Muutokset tallentuvat ja näkyvät siirrossa.</div>' : '';
+  return `<div class="iv"><nav aria-label="Haastattelun osiot"><ol class="sections">${nav}</ol><div class="legend"><span class="sec-st"></span>tyhjä<br><span class="sec-st partial"></span>kesken<br><span class="sec-st full"></span>valmis</div></nav>
+  <section><header class="page-head"><div class="eyebrow">Haastattelu · osio ${st.section + 1} / ${SECTIONS.length}</div><h1 tabindex="-1" id="h">${esc(sec.title)}</h1><p>${esc(sec.lead)}</p></header>${readonly}
+  <div class="panel">${body}${sec.goes ? `<div class="goes">Menee Wilmassa: ${sec.goes.map(g => `<span>${esc(g)}</span>`).join('')}</div>` : ''}</div></section></div>`;
+}
+
+function viewTransferList() {
+  const waiting = state.students.filter(s => s.phase === 'waiting');
+  const going = state.students.filter(s => s.phase === 'transfer');
+  const done = state.students.filter(s => s.phase === 'done');
+  const row = (st, btn) => `<li class="row"><div><div class="row-name">${esc(st.v.name)}</div><div class="row-detail">${esc(st.v.qual)}</div></div>${miniRail(st)}${btn}</li>`;
+  return `<header class="page-head"><div class="eyebrow">Työtila 2 · Siirto Wilmaan</div><h1>Siirto Wilmaan</h1><p>Valmiit haastattelut siirretään lomake kerrallaan. Sovellus täyttää, sinä tallennat Wilmassa, sovellus tarkistaa tallennuksen.</p></header>
+  <div class="panel"><div class="group-title">Siirto kesken</div><ul class="list">${going.map(s => row(s, `<button class="btn primary" data-open-tr="${s.id}">Jatka siirtoa</button>`)).join('') || '<li class="no-rows">Ei keskeneräisiä siirtoja.</li>'}</ul></div>
+  <div class="panel"><div class="group-title">Odottaa opiskelijaksi Wilmaan</div><p class="small muted" style="margin-bottom:6px">Hakijalla ei vielä ole opiskelijastatusta eikä opintokorttia. Tarkista tilanne, kun opiskeluoikeus on tehty.</p><ul class="list">${waiting.map(s => row(s, `<button class="btn" data-open-tr="${s.id}">Tarkista Wilmasta</button>`)).join('') || '<li class="no-rows">Ei odottavia.</li>'}</ul></div>
+  <div class="panel"><div class="group-title">Valmiit</div><ul class="list">${done.map(s => row(s, '<span class="badge ok">Valmis</span>')).join('') || '<li class="no-rows">Ei vielä valmiita.</li>'}</ul></div>`;
+}
+
+function readout(st, form) {
+  const pick = PICK[form.id].filter(k => k !== '@parts');
+  const parts = PICK[form.id].includes('@parts') ? PARTS.filter(p => (st.parts[p.code] || {}).on).map(p => `<div><dt>${esc(p.name)}</dt><dd>${esc(st.parts[p.code].year || '–')}, jakso ${esc(st.parts[p.code].period || '–')}</dd></div>`).join('') : '';
+  return `<dl class="readout">${parts}${pick.map(k => `<div class="${['tasks', 'further', 'working', 'career', 'demoEnv', 'demoTiming'].includes(k) ? 'long' : ''}"><dt>${esc(LABELS[k])}</dt><dd>${esc(st.v[k] || '–')}</dd></div>`).join('')}</dl>`;
+}
+
+function viewTransfer(st) {
+  if (st.phase === 'done') {
+    return `<header class="page-head"><div class="eyebrow">Siirto Wilmaan · valmis</div><h1>Kaikki lomakkeet varmennettu</h1><p>Tiedot on tallennettu Wilmaan ja luettu sieltä uudelleen.</p></header><div class="turn ok"><span class="big">✓</span><div><h3>${esc(st.v.name)}: valmis</h3><p>Haastattelu jää tälle koneelle. Poista se, kun et enää tarvitse sitä.</p></div></div>`;
+  }
+  const tr = st.transfer || {done: 0, step: 0};
+  const forms = FORMS.map((f, i) => {
+    const cls = i < tr.done ? 'done' : (i === tr.done ? 'current' : 'locked');
+    const note = i < tr.done ? 'Varmennettu' : (i === tr.done ? 'Nyt' : (f.group ? f.group : `Odottaa: ${formTitle(st, FORMS[i - 1]).toLowerCase()}`));
+    return `<li class="${cls}"${i === tr.done ? ' aria-current="step"' : ''}><span class="st">${i < tr.done ? '✓' : i + 1}</span><span><span class="fname">${esc(formTitle(st, f))}</span><small>${esc(note)}</small></span></li>`;
+  }).join('');
+  const form = FORMS[tr.done];
+  let inner;
+  if (form.id === 'sidonta') inner = bindView(st, tr);
+  else {
+    const steps = ['Tarkista tiedot', 'Sovellus täyttää', 'Tallenna Wilmassa', 'Varmennettu'];
+    const s4 = `<ol class="steps4" aria-label="Lomakkeen vaiheet">${steps.map((t, i) => `<li class="${i < tr.step ? 'done' : (i === tr.step ? 'current' : '')}${i === 2 ? ' you' : ''}"><span>${i + 1}/4</span><b>${t}</b></li>`).join('')}</ol>`;
+    const miss = formMissing(st, form);
+    let turn = '';
+    if (tr.step === 0 && !formUnsupported(st, form)) {
+      const openNote = form.open ? `<div class="note" style="margin-bottom:14px">Avoin: ${esc(form.open)}</div>` : '';
+      return `<div class="tr"><nav aria-label="Lomakkeet"><ol class="forms">${forms}</ol></nav><section><header class="page-head"><div class="eyebrow">Siirto · lomake ${tr.done + 1} / ${FORMS.length}</div><h1 tabindex="-1" id="h">${esc(formTitle(st, form))}</h1><p>${esc(form.what)}${form.what.endsWith('.') ? '' : '.'} Korjaa tarvittaessa ja täydennä puuttuvat ennen täyttöä.</p></header>${s4}${openNote}<div id="check-head">${checkHead(st, form)}</div><div class="panel"><div class="panel-head"><h3>Wilma / ${esc(formTitle(st, form))}</h3><span class="badge accent">Muokattavissa</span></div>${editFields(st, form)}<div class="hint" style="margin-top:14px">Muutokset tallentuvat myös haastatteluun.</div></div></section></div>`;
+    }
+    if (tr.step === 0 && formUnsupported(st, form)) turn = `<div class="note warn" style="margin-bottom:14px">${esc(st.v.contractType)} ei ole vielä sovelluksen tukema. Tee lomake käsin Wilmassa ja merkitse se tehdyksi.</div>`;
+    else if (false) turn = `<div class="note warn" style="margin-bottom:14px">Puuttuu: ${miss.map(k => esc(LABELS[k])).join(', ')}. <button class="btn slim" data-fix="${st.id}">Täydennä haastatteluun</button></div>`;
+    if (tr.step === 1) turn = `<div class="turn"><span class="spinner"></span><div><h3>Sovellus täyttää lomaketta Chromessa…</h3><p>Älä koske Chromeen sillä aikaa.</p></div></div>`;
+    if (tr.step === 2) turn = `<div class="turn"><span class="big">👉</span><div><h3>Nyt sinun vuorosi Chromessa</h3><p>Tarkista täytetty lomake ”${esc(formTitle(st, form))}” ja paina Wilman Tallenna. Palaa sitten tähän.</p></div></div>`;
+    const openNote = form.open ? `<div class="note" style="margin-bottom:14px">Avoin: ${esc(form.open)}</div>` : '';
+    inner = `${s4}${openNote}${turn}<div class="panel"><div class="panel-head"><h3>Wilma / ${esc(formTitle(st, form))}</h3><span class="badge accent">${esc(form.what)}</span></div>${readout(st, form)}</div>`;
+  }
+  return `<div class="tr"><nav aria-label="Lomakkeet"><ol class="forms">${forms}</ol></nav><section><header class="page-head"><div class="eyebrow">Siirto · lomake ${tr.done + 1} / ${FORMS.length}</div><h1 tabindex="-1" id="h">${esc(formTitle(st, form))}</h1><p>${esc(form.what)}${form.what.endsWith('.') ? '' : '.'}</p></header>${inner}</section></div>`;
+}
+
+function bindView(st, tr) {
+  if (tr.searching) return `<div class="turn"><span class="spinner"></span><div><h3>Haetaan Wilmasta opiskelijana…</h3><p>Haku vain lukee.</p></div></div>`;
+  if (tr.found) return `<div class="panel"><div class="panel-head"><h3>Löytyi yksi opiskelija</h3><span class="badge ok">Opiskelija</span></div><label class="card"><input type="radio" name="bind" id="bind-pick" style="margin-top:5px"><span><strong>${esc(st.v.name)}</strong><span class="facts"><span>Opiskeluoikeus: <b>${esc(st.v.qual)}</b></span><span>Alkaa: <b>${esc(st.v.start || '–')}</b></span></span></span></label><p class="small muted" style="margin-top:10px">Varmista, että tämä on sama henkilö, jota haastattelit.</p></div>`;
+  if (st.phase === 'waiting' && tr.notYet) return `<div class="note warn">Hakijaa ei vielä löydy opiskelijana. Hän pysyy jonossa kohdassa ”Odottaa opiskelijaksi”.</div>`;
+  return `<div class="panel"><p>Ennen siirtoa hakija pitää löytää Wilmasta <strong>opiskelijana</strong>, jolla on opintokortti. Hakijana olo ei riitä.</p></div>`;
+}
+
+function checkHead(st, form) {
+  const miss = formMissing(st, form);
+  if (!miss.length) return '<div class="check-head good"><b>✓</b><span>Kaikki pakolliset tiedot ovat mukana. Tarkista ne ja jatka täyttöön.</span></div>';
+  return `<div class="check-head warn"><b>${miss.length}</b><span>${miss.length === 1 ? 'pakollinen tieto puuttuu' : 'pakollista tietoa puuttuu'}: ${miss.map(k => esc(LABELS[k])).join(', ')}. Täydennä korostetut kentät.</span></div>`;
+}
+function editFields(st, form) {
+  const keys = PICK[form.id];
+  const parts = keys.includes('@parts') ? `<h3 style="font-size:13px;margin:0 0 8px">Tutkinnon osat</h3>${partsHtml(st, true)}` : '';
+  const fields = keys.filter(k => k !== '@parts').map(k => {
+    const f = FIELD[k];
+    return fieldHtml(st, form.needs.includes(k) ? {...f, optional: false} : f, form.needs.includes(k) && !filled(st, k));
+  }).join('');
+  return `${parts}${fields ? `<div class="fields"${parts ? ' style="margin-top:18px"' : ''}>${fields}</div>` : ''}`;
+}
+// Päivitä korostukset kirjoittaessa ilman koko näkymän uudelleenpiirtoa (fokus säilyy).
+function refreshMissing(st) {
+  const form = FORMS[(st.transfer || {done: 0}).done];
+  const head = $('#check-head'); if (head) head.innerHTML = checkHead(st, form);
+  document.querySelectorAll('#main [data-field]').forEach(el => {
+    const k = el.dataset.field;
+    const miss = form.needs.includes(k) && !filled(st, k);
+    el.classList.toggle('missing', miss);
+    const chip = el.querySelector('.miss-chip');
+    if (miss && !chip) el.querySelector('.lbl').insertAdjacentHTML('beforeend', '<span class="miss-chip">Puuttuu</span>');
+    if (!miss && chip) chip.remove();
+  });
+  const fill = $('#fill'); if (fill) fill.disabled = formMissing(st, form).length > 0;
+}
+
+function renderActions() {
+  const el = $('#actions');
+  const st = cur();
+  let left = '', right = '';
+  if (state.screen === 'interview' && st) {
+    const i = st.section;
+    const last = i === SECTIONS.length - 1;
+    left = `<span class="meta saved" id="saved">Tallennettu klo ${esc(st.savedAt)}</span><span class="meta"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> seuraava</span>`;
+    right = `${i > 0 ? `<button class="btn" data-sec="${i - 1}">← ${esc(SECTIONS[i - 1].title)}</button>` : ''}` +
+      (last ? (st.phase === 'interview' ? '<button class="btn primary big" id="finish">Haastattelu valmis ✓</button>' : '<button class="btn primary big" data-go="list">Takaisin listaan</button>')
+        : `<button class="btn primary big" data-sec="${i + 1}" id="next">Seuraava: ${esc(SECTIONS[i + 1].title)} →</button>`);
+  } else if (state.screen === 'transfer' && st && st.phase !== 'done') {
+    const tr = st.transfer || {done: 0, step: 0};
+    const form = FORMS[tr.done];
+    left = `<span class="meta">Sovellus ei koskaan paina Wilman Tallenna-painiketta.</span>`;
+    if (form.id === 'sidonta') {
+      if (tr.found) right = '<button class="btn primary big" id="bind-ok" disabled>Vahvista: sama henkilö →</button>';
+      else if (!tr.searching) right = '<button class="btn primary big" id="bind-search">Hae Wilmasta opiskelijana</button>';
+    } else if (tr.step === 0 && formUnsupported(st, form)) right = '<button class="btn primary big" id="manual-done">Tein käsin – seuraava →</button>';
+    else if (tr.step === 0) right = `<button class="btn primary big" id="fill"${formMissing(st, form).length ? ' disabled' : ''}>Tiedot oikein – täytä Wilmaan →</button>`;
+    if (tr.step === 0 && formMissing(st, form).length && !formUnsupported(st, form)) left = '<span class="meta">Täyttö aukeaa, kun puuttuvat tiedot on täydennetty.</span>';
+    else if (tr.step === 2) right = '<button class="btn primary big" id="saved-btn">Tallensin – tarkista tallennus</button>';
+    else if (tr.step === 3) right = tr.done + 1 < FORMS.length ? `<button class="btn primary big" id="next-form">Seuraava lomake: ${esc(formTitle(st, FORMS[tr.done + 1]))} →</button>` : '<button class="btn primary big" id="next-form">Valmis ✓</button>';
+  } else if (state.screen === 'transfer' && st) {
+    right = '<button class="btn primary big" data-go="list">Takaisin siirtojonoon</button>';
+  }
+  el.hidden = !left && !right;
+  el.innerHTML = `${left}<span class="right">${right}</span>`;
+}
+
+// ---- Toiminnot ----
+function go(screen) { state.screen = screen; if (screen === 'list') { state.studentId = null; state.search = null; } render(); window.scrollTo(0, 0); focusHead(); }
+function focusHead() { window.scrollTo(0, 0); const h = $('#h'); if (h) h.focus({preventScroll: true}); }
+function openSection(i) {
+  const st = cur(); st.section = i; render(); window.scrollTo(0, 0); focusHead();
+  announce(`Osio ${i + 1}/${SECTIONS.length}: ${SECTIONS[i].title}`);
+  const first = document.querySelector('#main .control');
+  if (first && !SECTIONS[i].summary) first.focus({preventScroll: true});
+}
+function touch(st) { st.savedAt = nowTime(); const s = $('#saved'); if (s) s.textContent = `Tallennettu klo ${st.savedAt}`; }
+function refreshSectionMarks(st) {
+  SECTIONS.forEach((s, i) => {
+    const el = document.querySelector(`[data-secst="${i}"]`);
+    if (!el || s.summary) return;
+    const ss = sectionStatus(st, s);
+    el.className = `sec-st ${ss}`;
+    el.textContent = ss === 'full' ? '✓' : String(i + 1);
+  });
+}
+function newStudent(app) {
+  const id = 's' + Date.now();
+  const v = app ? {name: app.name, qual: app.qual, contractType: 'Oppisopimus', employer: app.employer, businessId: app.businessId} : {};
+  v.docDate = today(); v.participants = 'Hakija ja haastattelija';
+  state.students.unshift({id, phase: 'interview', section: 0, savedAt: nowTime(), prefilled: app ? ['name', 'qual', 'contractType', 'employer', 'businessId', 'docDate', 'participants'] : ['docDate', 'participants'], v, parts: {}, transfer: null});
+  state.studentId = id; state.space = 'interviews'; state.search = null;
+  state.screen = 'interview'; render(); focusHead();
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, [data-pick]');
+  if (!t) return;
+  const st = cur();
+  if (t.id === 'reset') { state = initialState(); render(); return; }
+  if (t.dataset.space) { state.space = t.dataset.space; go('list'); return; }
+  if (t.dataset.go) { go(t.dataset.go); return; }
+  if (t.dataset.open) { state.studentId = t.dataset.open; state.screen = 'interview'; render(); focusHead(); return; }
+  if (t.dataset.openIv) { state.studentId = t.dataset.openIv; state.screen = 'interview'; render(); focusHead(); return; }
+  if (t.dataset.openTr) { state.studentId = t.dataset.openTr; state.screen = 'transfer'; const s = cur(); s.transfer = s.transfer || {done: 0, step: 0}; render(); focusHead(); return; }
+  if (t.dataset.sec !== undefined) { openSection(Number(t.dataset.sec)); return; }
+  if (t.dataset.jumpField) {
+    const k = t.dataset.jumpField;
+    const idx = k === '@parts' ? SECTIONS.findIndex(s => s.parts) : SECTIONS.findIndex(s => (s.fields || []).some(f => f.k === k));
+    openSection(idx);
+    const el = document.getElementById('f-' + k); if (el) el.focus();
+    return;
+  }
+  if (t.dataset.fix) { state.space = 'interviews'; state.screen = 'interview'; st.section = SECTIONS.length - 1; render(); focusHead(); return; }
+  if (t.id === 'do-search') { doSearch(); return; }
+  if (t.id === 'blank') { newStudent(null); return; }
+  if (t.dataset.pick !== undefined) { newStudent(APPLICANTS[Number(t.dataset.pick)]); return; }
+  if (t.id === 'finish') { st.phase = 'waiting'; st.transfer = null; state.space = 'transfer'; state.screen = 'list'; state.studentId = null; render(); announce('Haastattelu valmis. Hakija siirtyi siirtojonoon odottamaan opiskelijaksi.'); return; }
+  if (t.id === 'bind-search') {
+    st.transfer = st.transfer || {done: 0, step: 0}; st.transfer.searching = true; render();
+    setTimeout(() => { st.transfer.searching = false; st.transfer.found = true; render(); }, 900); return;
+  }
+  if (t.id === 'bind-ok') { st.transfer = {done: 1, step: 0}; st.phase = 'transfer'; render(); focusHead(); announce('Opiskelija sidottu. Seuraavaksi työpaikka.'); return; }
+  if (t.id === 'fill') { st.transfer.step = 1; render(); setTimeout(() => { st.transfer.step = 2; render(); announce('Lomake täytetty. Tallenna Wilmassa.'); }, 1200); return; }
+  if (t.id === 'manual-done') { st.transfer.step = 3; render(); return; }
+  if (t.id === 'saved-btn') { st.transfer.step = 3; render(); announce('Tallennus tarkistettu ja varmennettu.'); return; }
+  if (t.id === 'next-form') {
+    st.transfer.done += 1; st.transfer.step = 0;
+    if (st.transfer.done >= FORMS.length) st.phase = 'done';
+    render(); window.scrollTo(0, 0); focusHead(); return;
+  }
+});
+
+// Valmis-vaiheen ruutu: näytä varmennus vasta kun klikattu
+document.addEventListener('change', e => {
+  const st = cur();
+  if (e.target.id === 'bind-pick') { const b = $('#bind-ok'); if (b) b.disabled = false; return; }
+  if (e.target.dataset.part) {
+    const p = st.parts[e.target.dataset.part] = st.parts[e.target.dataset.part] || {};
+    const k = e.target.dataset.pk;
+    p[k] = k === 'on' ? e.target.checked : e.target.value;
+    if (k === 'on' || state.screen === 'transfer') { render(); }
+    touch(st); refreshSectionMarks(st); return;
+  }
+  if (e.target.dataset.k) { st.v[e.target.dataset.k] = e.target.value; touch(st); refreshSectionMarks(st); if (state.screen === 'transfer') refreshMissing(st); }
+});
+document.addEventListener('input', e => {
+  const st = cur();
+  if (st && e.target.dataset.k) { st.v[e.target.dataset.k] = e.target.value; touch(st); refreshSectionMarks(st); if (state.screen === 'transfer') refreshMissing(st); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'q') { doSearch(); return; }
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    const b = $('#next') || $('#finish');
+    if (b) { e.preventDefault(); b.click(); }
+  }
+});
+function doSearch() {
+  const q = ($('#q') || {}).value || '';
+  if (!q.trim()) return;
+  state.search = {q, busy: true}; render();
+  setTimeout(() => { state.search = {q, done: true}; render(); }, 700);
+}
+
+render();
+</script>
+</body>
+</html>
