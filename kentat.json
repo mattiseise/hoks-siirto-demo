@@ -1,0 +1,132 @@
+{
+  "_ohje": "Synteettisen Wilma v2:n lomakkeiden kentät ja niiden vastineet haastattelussa. Jokainen v2:n käyttäjän täytettävä kenttä on joko fields- tai exceptions-listassa (savutesti tarkistaa). control = kentän name, table:<sarakkeen otsikko> tai radioryhmän name. label = otsikko samoin sanoin kuin Wilmassa. key = haastattelun kenttä (@-alkuiset ovat tutkinnon osa- tai näyttökohtaisia). pick = combobox valitaan ehdotuslistasta (exact, contains, instructor). readback = synteettisen Wilman näkymäreitin data-testid ilman etuliitettä; puuttuu = ei takaisinluettavissa. expect = vertailuarvo, jos eri kuin key.",
+  "forms": [
+    {
+      "id": "tyopaikka",
+      "title": "Uusi työpaikka",
+      "form_type": "744",
+      "path": "/forms/744/new",
+      "scope": "form",
+      "readback_prefix": "workplace-",
+      "fields": [
+        {"control": "pfield2", "label": "Nimi", "key": "employer", "readback": "name"},
+        {"control": "pfield5", "label": "Y-tunnus", "key": "businessId", "readback": "business-id"},
+        {"control": "pfield8", "label": "Lähiosoite", "key": "street", "readback": "street-address"},
+        {"control": "pfield9", "label": "Postiosoite", "key": "postal", "readback": "postal-address"},
+        {"control": "pfield61", "label": "Toimipisteen paikkakunta", "key": "municipality", "pick": "exact", "readback": "municipality"},
+        {"control": "pfield63", "label": "Maa (jos muu kuin [poistettu])", "key": "country"},
+        {"control": "pfield11", "label": "Puhelin", "key": "wpPhone", "readback": "phone"},
+        {"control": "pfield13", "label": "Sähköpostiosoite", "key": "wpEmail", "readback": "email"},
+        {"control": "pfield190", "label": "Työpaikka on aktiivinen", "key": "wpActive"},
+        {"control": "pfield850", "label": "Julkinen", "key": "wpPublic"},
+        {"control": "pfield180", "label": "Oppisopimuspaikka", "key": "wpApprentice"}
+      ],
+      "exceptions": [
+        {"control": "pfield701", "label": "IBAN-tilinumero", "reason": "Matin linjaus: IBANia ei tarvita (profiili: workplace.iban ei kuulu viipaleeseen D1a)."},
+        {"control": "pfield49", "label": "Tiedot tarkistettu", "reason": "Ihminen merkitsee tarkistuspäivän ennen tallennusta (Matin vastaus 1.11.2026, profiili: workplace.checked)."}
+      ]
+    },
+    {
+      "id": "ohjaaja",
+      "title": "Uusi työpaikkaohjaaja",
+      "form_type": "745",
+      "path": "/forms/745/new",
+      "scope": "form",
+      "readback_prefix": "instructor-",
+      "fields": [
+        {"control": "pfield2", "label": "Sukunimi", "key": "insLast", "readback": "last-name"},
+        {"control": "pfield3", "label": "Etunimet", "key": "insFirst", "readback": "first-names"},
+        {"control": "pfield11", "label": "Puhelin", "key": "insPhone", "readback": "phone"},
+        {"control": "pfield13", "label": "Sähköpostiosoite", "key": "insEmail", "readback": "email"},
+        {"control": "pfield60", "label": "Työpaikka", "key": "businessId", "pick": "contains", "readback": "workplace-id", "expect": "@wpId"}
+      ],
+      "exceptions": [
+        {"control": "pfield19", "label": "Valinta 19", "reason": "Valintaruudun otsikko on peitetty, merkitys tuntematon (profiili: instructor.flags)."},
+        {"control": "pfield85", "label": "Valinta 85", "reason": "Valintaruudun otsikko on peitetty, merkitys tuntematon (profiili: instructor.flags)."},
+        {"control": "pfield18", "label": "Valinta 18", "reason": "Valintaruudun otsikko on peitetty, merkitys tuntematon (profiili: instructor.flags)."}
+      ]
+    },
+    {
+      "id": "sopimus",
+      "title": "Oppisopimus (isäntälomake)",
+      "form_type": "631",
+      "path": "/forms/631/new?sid=1101&cid=8101",
+      "scope": "form",
+      "fields": [
+        {"control": "pfield4", "label": "Oppisopimuksen työnantaja", "key": "businessId", "pick": "contains"},
+        {"control": "pfield64", "label": "Maa", "key": "country"},
+        {"control": "prepeater5-1-pfield5", "label": "Työpaikkaohjaaja", "key": "insLast", "pick": "instructor"},
+        {"control": "pfield65", "label": "Työpaikan yhteyshenkilö", "key": "contact"}
+      ],
+      "exceptions": [
+        {"control": "pfield62", "label": "Työpaikkaohjaaja (toisesta yrityksestä)", "reason": "Toisen yrityksen kaima on eri tietue; rajaamaton haku toisi muiden yritysten nimiä näkyviin (tietojen minimointi, profiili: instructor.other_company)."}
+      ]
+    },
+    {
+      "id": "polku",
+      "title": "Opintopolku (HOPS)",
+      "form_type": "",
+      "path": "/profiles/students/1101/choices",
+      "scope": "#selections-table",
+      "fields": [
+        {"control": "year-selection", "label": "Valinnan lukuvuosi", "key": "@parts.year", "readback": "year"},
+        {"control": "period-selection", "label": "Valinnan jakso", "key": "@parts.period", "readback": "period"}
+      ],
+      "exceptions": [
+        {"control": "#txt-other-period", "label": "Muu jakso (6–52)", "reason": "Jaksoa ”Muu” ei käytetä (profiili: hops.period_other)."}
+      ]
+    },
+    {
+      "id": "ura",
+      "title": "Urasuunnitelma",
+      "form_type": "418",
+      "path": "/forms/418/new?sid=1101&tid=7301",
+      "scope": "form",
+      "readback_prefix": "field-",
+      "fields": [
+        {"control": "prepeater306-1-pfield306", "label": "Opiskelijan tavoite", "key": "goal"},
+        {"control": "pfield301", "label": "Suunnitelma jatko-opintoihin siirtymisestä", "key": "further", "readback": "further_studies"},
+        {"control": "pfield302", "label": "Suunnitelma työelämään siirtymisestä", "key": "working", "readback": "working_life"},
+        {"control": "pfield303", "label": "Suunnitelma työuralla etenemiseksi", "key": "career", "readback": "career_progress"},
+        {"control": "pfield304", "label": "Suunnitelma opintojen jatkamiseksi (kirjataan, jos opiskelija eroaa oppilaitoksesta)", "key": "continuation", "readback": "continuation"},
+        {"control": "pfield12", "label": "Asiakirjan laatimispäivä", "key": "docDate", "readback": "document_date"},
+        {"control": "prepeater17-1-pfield17", "label": "Vastuuopettajat (suunnitelman laatijat)", "key": "teachers"},
+        {"control": "prepeater18-1-pfield18", "label": "Muut vastuuhenkilöt", "key": "others"},
+        {"control": "pfield13", "label": "Asiakirjan laatimiseen osallistuneet", "key": "participants", "readback": "participants"}
+      ],
+      "exceptions": []
+    },
+    {
+      "id": "naytot",
+      "title": "HOKS Näyttösuunnitelma ja näytön arviointi",
+      "form_type": "604",
+      "path": "/forms/604/new?sid=1101&cid=8101",
+      "scope": "form",
+      "readback_prefix": "demonstration-",
+      "fields": [
+        {"control": "pfield6", "label": "Suorituspaikka (työpaikka)", "key": "businessId", "pick": "contains", "readback": "workplace-id", "expect": "@wpId"},
+        {"control": "pfield71", "label": "Näytön aloituspvm", "key": "@demo.start", "readback": "start-date"},
+        {"control": "pfield29", "label": "Näytön päättymispäivä", "key": "@demo.end", "readback": "end-date"},
+        {"control": "table:Suunnitelma osaamisen osoittamisesta", "label": "Suunnitelma osaamisen osoittamisesta", "key": "@demo.plan", "readback": "row-plan"},
+        {"control": "table:Tekemisessä syntyvät dokumentit", "label": "Tekemisessä syntyvät dokumentit", "key": "@demo.docs", "readback": "row-documents"},
+        {"control": "pfield180", "label": "Näyttöympäristö", "key": "@demo.env", "readback": "environment"}
+      ],
+      "exceptions": [
+        {"control": "pfield5", "label": "Suorituspaikka (oppilaitos)", "reason": "Oppisopimusopiskelijalla jätetään tyhjäksi (Matin vastaus 1.11.2026, profiili: demonstration.school_place)."},
+        {"control": "pfield181", "label": "Vastuuopettajan palaute näyttösuunnitelmasta", "reason": "Opettajan kirjaus; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield10", "label": "Näyttöpvm", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield40", "label": "Arvosana", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield4", "label": "Suoritettava laajuus", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield101", "label": "Näytön arvioija (opettaja)", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield102", "label": "Näytön arvioija 2 (opettaja)", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield103", "label": "Näytön arvioija (työpaikkaohjaaja)", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield104", "label": "Näytön arvioija 2 (työpaikkaohjaaja)", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield105", "label": "Tutkinnon osan arvosanasta päätti", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield106", "label": "Arviointikeskusteluun osallistujat", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield190", "label": "Kuvaus suoritetusta näytöstä", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield191", "label": "Perustelut, jos näyttö on hylätty", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},
+        {"control": "pfield192", "label": "Näytön täydentäminen/uusiminen", "reason": "Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."}
+      ]
+    }
+  ]
+}

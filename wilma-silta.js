@@ -26,8 +26,13 @@
   // Iframeen lisättävät tyylit: täytettyjen kenttien korostus ja kapean paneelin asettelu.
   // Wilman omia sivuja tai teemaa ei muuteta; nämä ovat upotuksen tyylejä.
   const FRAME_CSS = `
-.ota-filled{outline:3px solid #f0a43a!important;outline-offset:1px;background-color:#fff8ec!important}
-label.ota-filled{outline-offset:2px}
+.ota-filled{outline:2px solid #f3c37e!important;outline-offset:1px;background-color:#fffaf0!important}
+.ota-active{outline:3px solid #f0a43a!important;outline-offset:2px;box-shadow:0 0 0 6px rgba(240,164,58,.3)!important;background-color:#fff8ec!important}
+.ota-target{outline:3px solid #f0a43a!important;outline-offset:2px;box-shadow:0 0 0 6px rgba(240,164,58,.35)!important;border-radius:3px}
+#ota-pointer{position:fixed;z-index:4000;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(240,164,58,.92);border:2px solid #12305a;box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none;transition:left .3s ease,top .3s ease}
+#ota-pointer::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid rgba(240,164,58,.7);animation:ota-ping 1s ease-out infinite}
+@keyframes ota-ping{from{transform:scale(.55);opacity:1}to{transform:scale(1.35);opacity:0}}
+@media (prefers-reduced-motion:reduce){#ota-pointer{transition:none}#ota-pointer::after{animation:none}}
 body[data-ds-step]{padding-bottom:150px!important}
 @media (max-width:900px){
  body.ds-skin{padding:56px 10px 60px!important}

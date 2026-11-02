@@ -35,7 +35,9 @@
    <button type="button" class="cbtn" id="w-back" title="Takaisin" aria-label="Takaisin">&#8592;</button>
    <button type="button" class="cbtn" id="w-reload" title="Lataa uudelleen" aria-label="Lataa uudelleen">&#8635;</button>
    <div class="addr"><span class="addr-chip">Synteettinen</span><span class="addr-text"><span class="sr-only">Osoite: </span><span class="addr-host" id="w-host">wilma.synteettinen.test</span><span id="w-path">/</span></span></div>
+   <label class="pace" for="w-speed" title="Sovelluksen täytön tahti"><span class="pace-lbl">Tahti</span><select id="w-speed"><option value="hidas">Hidas</option><option value="normaali">Normaali</option><option value="nopea">Nopea</option></select></label>
   </div>
+  <div class="fill-bar" id="w-fill" hidden><span class="spinner" aria-hidden="true"></span><span class="fill-text" id="w-fill-text" role="status" aria-live="polite"></span><button type="button" class="stop" id="w-stop">Keskeytä täyttö</button></div>
   <div class="chrome-note" id="w-note" role="status" hidden></div>
   <div class="chrome-body">
    <iframe id="wilma-frame" title="Synteettinen Wilma (testiympäristö)"></iframe>

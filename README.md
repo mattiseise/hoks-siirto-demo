@@ -24,12 +24,12 @@ koskaan paina Tallenna-painiketta itse.
 |---|---|
 | Opiskelijan sidonta | Haku opiskelijalistasta sukunimellä; samannimiset valitaan käsin |
 | Henkilökohtaistaminen | Simuloitu (lomaketta ei ole) |
-| Työpaikka | Rekisterihaku Y-tunnuksella; puuttuva lisätään lomakkeella |
+| Työpaikka | Rekisterihaku Y-tunnuksella; puuttuva lisätään lomakkeella (kaikki kentät IBANia ja tarkistuspäivää lukuun ottamatta) |
 | Työpaikkaohjaaja | Haku nimellä; puuttuva lisätään työpaikan alle |
-| Oppisopimus | Lomake avataan ja haut tehdään, tallennus simuloitu |
+| Oppisopimus | Lomake avataan ja täytetään, tallennus simuloitu |
 | Tutkintokoulutuksen suunnittelu | Opintopolun lukuvuosi ja jakso |
-| Urasuunnitelma | Uusi suunnitelma; olemassa olevaa ei luoda uudelleen |
-| Näyttösuunnitelmat | Suunnitelmaosa tutkinnon osittain |
+| Urasuunnitelma | Kaikki kentät; olemassa olevaa ei luoda uudelleen |
+| Näyttösuunnitelmat | Suunnitelmaosa tutkinnon osittain: päivät, ympäristö, suorituspaikka ja jokaisen ammattitaitovaatimuksen suunnitelma ja dokumentit; arviointiosaa ei täytetä |
 
 Opintopolku, oppisopimus ja näyttösuunnitelmat vaativat HOPS-puun, joka on vain demohenkilöllä
 Virtanen Aino (1101). Muilla nämä kohdat ovat simuloituja.
@@ -38,8 +38,9 @@ Virtanen Aino (1101). Muilla nämä kohdat ovat simuloituja.
 
 1. Valitse **Siirto Wilmaan** ja avaa *Aino Virtanen* (”Tarkista Wilmasta”).
 2. Hae opiskelijana. Wilmassa on kaksi Virtanen Ainoa: valitse se, jonka tutkinto täsmää.
-3. Etene lomake kerrallaan. Kun sovellus on täyttänyt lomakkeen, paina Wilman Tallenna.
-   Voit myös muuttaa arvoa Wilmassa ennen tallennusta ja katsoa, miten ero näkyy.
+3. Etene lomake kerrallaan. Sovellus täyttää lomakkeen näkyvästi kenttä kerrallaan (tahdin voi
+   vaihtaa Wilma-paneelin valikosta ja täytön keskeyttää). Kun täyttö on valmis, paina Wilman
+   Tallenna. Voit myös muuttaa arvoa Wilmassa ennen tallennusta ja katsoa, miten ero näkyy.
 
 ## Klikattava prototyyppi
 

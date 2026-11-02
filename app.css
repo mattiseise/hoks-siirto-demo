@@ -220,6 +220,26 @@ kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-r
 .addr-chip{font-size:10px;font-weight:700;letter-spacing:.04em;background:#f0a43a;color:#1d1d1d;border-radius:10px;padding:1px 7px;flex-shrink:0}
 .addr-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .addr-host{color:#5f6368}
+.pace{display:flex;align-items:center;gap:5px;font-size:12px;color:#3c4043;flex-shrink:0}
+.pace select{font-size:12px;border:1px solid #c9ced6;border-radius:12px;background:#fff;padding:3px 6px;min-height:28px}
+.fill-bar{display:flex;align-items:center;gap:10px;padding:7px 12px;background:#12305a;color:#fff;font-size:13px;border-bottom:1px solid #0b2140}
+.fill-bar .fill-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fill-bar .stop{flex-shrink:0;color:#12305a;background:#f0a43a;border-radius:14px;padding:4px 12px;font-weight:700;font-size:12px}
+.fill-progress{font-weight:600;color:#73451b}
+.turn-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sub-h{font-size:13px;margin:0 0 8px}
+.field.check{display:flex;flex-direction:column;justify-content:center}
+.check-row{display:flex;align-items:center;gap:10px;min-height:42px;font-size:14px}
+.check-row input{width:18px;height:18px;accent-color:var(--accent)}
+.demo-part{border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;margin:0 0 14px;min-width:0}
+.demo-part legend{font-weight:700;padding:0 6px}
+.req{border-top:1px dashed var(--line);margin-top:14px;padding-top:12px}
+.req-text{font-size:14px;margin-bottom:10px}
+.req-text span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700}
+.exceptions{margin-top:16px;font-size:13px}
+.exceptions summary{cursor:pointer;font-weight:600}
+.exceptions ul{margin:10px 0 0;padding-left:18px}
+.exceptions li{margin:4px 0}
 .chrome-note{padding:7px 12px;font-size:12px;background:#fff4e5;color:#73451b;border-bottom:1px solid #efd3ad}
 .chrome-body{position:relative;flex:1;min-height:0;background:#ebebeb}
 .chrome-body iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#ebebeb}
@@ -285,6 +305,7 @@ kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-r
  body[data-view=wilma] .app-col{display:none}
  .chrome{top:46px;height:calc(100vh - 46px);border-left:0}
  .narrow-only{display:inline-flex}
+ .pace-lbl{display:none}
 }
 @media(max-height:720px){
  .where{padding-top:8px;padding-bottom:8px}
