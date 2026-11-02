@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Haastattelupolku</title>
 <!-- Klikattava prototyyppi suunnitelmasta docs/plans/haastattelupolku.md (2.11.2026).
-     Yksi tiedosto, ei ulkoisia riippuvuuksia, ei Python-kytkentää. Kaikki tiedot ovat keksittyjä.
+     Yksi tiedosto, ei ulkoisia riippuvuuksia, ei Python-kytkentää; siirto on simuloitu. Kaikki tiedot ovat keksittyjä.
+     Kentät, demohenkilöt ja tutkinnon osat ovat samat kuin testiversiossa (pages/haastattelupolku/):
+     kenttäluettelo ja synteettisen Wilma v2:n siemen upotetaan scripts/synkkaa-prototyyppi.py:llä.
      Tyylit sovelluksen app.css:n muuttujista (HOKS-verkkodemon ilme). -->
 <style>
 :root{--ink:#1a0530;--muted:#655b73;--paper:#f5f3f8;--panel:#fff;--line:#e2ddeb;--accent:#775ec4;--lav:#9d7dff;--tint:#eee8ff;--ok:#28664b;--ok-tint:#edf5ef;--warn:#935916;--warn-tint:#fff4e5;--radius:14px;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper)}
@@ -210,7 +212,8 @@ kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-r
  .actions{left:0;padding:10px 16px}
  .where{padding:12px 16px 10px}
  .main{padding:20px 16px 130px}
- .iv,.tr{grid-template-columns:1fr}
+ .iv,.tr{grid-template-columns:minmax(0,1fr)}
+ .iv>*,.tr>*{min-width:0}
  .sections{position:static;display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
  .sections li{flex-shrink:0}
  .sections button{padding:7px 9px;font-size:13px}
@@ -243,6 +246,21 @@ kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-r
  .sections{top:118px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Wilman kenttien vastineet (kentat.json): valintaruudut, näyttösuunnitelmat, poikkeukset */
+.table-wrap{overflow-x:auto;max-width:100%}
+.sub-h{font-size:13px;margin:0 0 8px}
+.field.check{display:flex;flex-direction:column;justify-content:center}
+.check-row{display:flex;align-items:center;gap:10px;min-height:42px;font-size:14px}
+.check-row input{width:18px;height:18px;accent-color:var(--accent)}
+.demo-part{border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;margin:0 0 14px;min-width:0}
+.demo-part legend{font-weight:700;padding:0 6px}
+.req{border-top:1px dashed var(--line);margin-top:14px;padding-top:12px}
+.req-text{font-size:14px;margin-bottom:10px}
+.req-text span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700}
+.exceptions{margin-top:16px;font-size:13px}
+.exceptions summary{cursor:pointer;font-weight:600}
+.exceptions ul{margin:10px 0 0;padding-left:18px}
+.exceptions li{margin:4px 0}
 </style>
 </head>
 <body>
@@ -261,52 +279,69 @@ kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-r
 <div class="actions" id="actions" hidden></div>
 <div class="sr-only" role="status" aria-live="polite" id="announcer"></div>
 
+<!-- kentat:ALKU (scripts/synkkaa-prototyyppi.py, älä muokkaa käsin) -->
+<script type="application/json" id="kentat">{"_ohje":"Synteettisen Wilma v2:n lomakkeiden kentät ja niiden vastineet haastattelussa. Jokainen v2:n käyttäjän täytettävä kenttä on joko fields- tai exceptions-listassa (savutesti tarkistaa). control = kentän name, table:<sarakkeen otsikko> tai radioryhmän name. label = otsikko samoin sanoin kuin Wilmassa. key = haastattelun kenttä (@-alkuiset ovat tutkinnon osa- tai näyttökohtaisia). pick = combobox valitaan ehdotuslistasta (exact, contains, instructor). readback = synteettisen Wilman näkymäreitin data-testid ilman etuliitettä; puuttuu = ei takaisinluettavissa. expect = vertailuarvo, jos eri kuin key.","forms":[{"id":"tyopaikka","title":"Uusi työpaikka","form_type":"744","path":"/forms/744/new","scope":"form","readback_prefix":"workplace-","fields":[{"control":"pfield2","label":"Nimi","key":"employer","readback":"name"},{"control":"pfield5","label":"Y-tunnus","key":"businessId","readback":"business-id"},{"control":"pfield8","label":"Lähiosoite","key":"street","readback":"street-address"},{"control":"pfield9","label":"Postiosoite","key":"postal","readback":"postal-address"},{"control":"pfield61","label":"Toimipisteen paikkakunta","key":"municipality","pick":"exact","readback":"municipality"},{"control":"pfield63","label":"Maa (jos muu kuin [poistettu])","key":"country"},{"control":"pfield11","label":"Puhelin","key":"wpPhone","readback":"phone"},{"control":"pfield13","label":"Sähköpostiosoite","key":"wpEmail","readback":"email"},{"control":"pfield190","label":"Työpaikka on aktiivinen","key":"wpActive"},{"control":"pfield850","label":"Julkinen","key":"wpPublic"},{"control":"pfield180","label":"Oppisopimuspaikka","key":"wpApprentice"}],"exceptions":[{"control":"pfield701","label":"IBAN-tilinumero","reason":"Matin linjaus: IBANia ei tarvita (profiili: workplace.iban ei kuulu viipaleeseen D1a)."},{"control":"pfield49","label":"Tiedot tarkistettu","reason":"Ihminen merkitsee tarkistuspäivän ennen tallennusta (Matin vastaus 1.11.2026, profiili: workplace.checked)."}]},{"id":"ohjaaja","title":"Uusi työpaikkaohjaaja","form_type":"745","path":"/forms/745/new","scope":"form","readback_prefix":"instructor-","fields":[{"control":"pfield2","label":"Sukunimi","key":"insLast","readback":"last-name"},{"control":"pfield3","label":"Etunimet","key":"insFirst","readback":"first-names"},{"control":"pfield11","label":"Puhelin","key":"insPhone","readback":"phone"},{"control":"pfield13","label":"Sähköpostiosoite","key":"insEmail","readback":"email"},{"control":"pfield60","label":"Työpaikka","key":"businessId","pick":"contains","readback":"workplace-id","expect":"@wpId"}],"exceptions":[{"control":"pfield19","label":"Valinta 19","reason":"Valintaruudun otsikko on peitetty, merkitys tuntematon (profiili: instructor.flags)."},{"control":"pfield85","label":"Valinta 85","reason":"Valintaruudun otsikko on peitetty, merkitys tuntematon (profiili: instructor.flags)."},{"control":"pfield18","label":"Valinta 18","reason":"Valintaruudun otsikko on peitetty, merkitys tuntematon (profiili: instructor.flags)."}]},{"id":"sopimus","title":"Oppisopimus (isäntälomake)","form_type":"631","path":"/forms/631/new?sid=1101&cid=8101","scope":"form","fields":[{"control":"pfield4","label":"Oppisopimuksen työnantaja","key":"businessId","pick":"contains"},{"control":"pfield64","label":"Maa","key":"country"},{"control":"prepeater5-1-pfield5","label":"Työpaikkaohjaaja","key":"insLast","pick":"instructor"},{"control":"pfield65","label":"Työpaikan yhteyshenkilö","key":"contact"}],"exceptions":[{"control":"pfield62","label":"Työpaikkaohjaaja (toisesta yrityksestä)","reason":"Toisen yrityksen kaima on eri tietue; rajaamaton haku toisi muiden yritysten nimiä näkyviin (tietojen minimointi, profiili: instructor.other_company)."}]},{"id":"polku","title":"Opintopolku (HOPS)","form_type":"","path":"/profiles/students/1101/choices","scope":"#selections-table","fields":[{"control":"year-selection","label":"Valinnan lukuvuosi","key":"@parts.year","readback":"year"},{"control":"period-selection","label":"Valinnan jakso","key":"@parts.period","readback":"period"}],"exceptions":[{"control":"#txt-other-period","label":"Muu jakso (6–52)","reason":"Jaksoa ”Muu” ei käytetä (profiili: hops.period_other)."}]},{"id":"ura","title":"Urasuunnitelma","form_type":"418","path":"/forms/418/new?sid=1101&tid=7301","scope":"form","readback_prefix":"field-","fields":[{"control":"prepeater306-1-pfield306","label":"Opiskelijan tavoite","key":"goal"},{"control":"pfield301","label":"Suunnitelma jatko-opintoihin siirtymisestä","key":"further","readback":"further_studies"},{"control":"pfield302","label":"Suunnitelma työelämään siirtymisestä","key":"working","readback":"working_life"},{"control":"pfield303","label":"Suunnitelma työuralla etenemiseksi","key":"career","readback":"career_progress"},{"control":"pfield304","label":"Suunnitelma opintojen jatkamiseksi (kirjataan, jos opiskelija eroaa oppilaitoksesta)","key":"continuation","readback":"continuation"},{"control":"pfield12","label":"Asiakirjan laatimispäivä","key":"docDate","readback":"document_date"},{"control":"prepeater17-1-pfield17","label":"Vastuuopettajat (suunnitelman laatijat)","key":"teachers"},{"control":"prepeater18-1-pfield18","label":"Muut vastuuhenkilöt","key":"others"},{"control":"pfield13","label":"Asiakirjan laatimiseen osallistuneet","key":"participants","readback":"participants"}],"exceptions":[]},{"id":"naytot","title":"HOKS Näyttösuunnitelma ja näytön arviointi","form_type":"604","path":"/forms/604/new?sid=1101&cid=8101","scope":"form","readback_prefix":"demonstration-","fields":[{"control":"pfield6","label":"Suorituspaikka (työpaikka)","key":"businessId","pick":"contains","readback":"workplace-id","expect":"@wpId"},{"control":"pfield71","label":"Näytön aloituspvm","key":"@demo.start","readback":"start-date"},{"control":"pfield29","label":"Näytön päättymispäivä","key":"@demo.end","readback":"end-date"},{"control":"table:Suunnitelma osaamisen osoittamisesta","label":"Suunnitelma osaamisen osoittamisesta","key":"@demo.plan","readback":"row-plan"},{"control":"table:Tekemisessä syntyvät dokumentit","label":"Tekemisessä syntyvät dokumentit","key":"@demo.docs","readback":"row-documents"},{"control":"pfield180","label":"Näyttöympäristö","key":"@demo.env","readback":"environment"}],"exceptions":[{"control":"pfield5","label":"Suorituspaikka (oppilaitos)","reason":"Oppisopimusopiskelijalla jätetään tyhjäksi (Matin vastaus 1.11.2026, profiili: demonstration.school_place)."},{"control":"pfield181","label":"Vastuuopettajan palaute näyttösuunnitelmasta","reason":"Opettajan kirjaus; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield10","label":"Näyttöpvm","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield40","label":"Arvosana","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield4","label":"Suoritettava laajuus","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield101","label":"Näytön arvioija (opettaja)","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield102","label":"Näytön arvioija 2 (opettaja)","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield103","label":"Näytön arvioija (työpaikkaohjaaja)","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield104","label":"Näytön arvioija 2 (työpaikkaohjaaja)","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield105","label":"Tutkinnon osan arvosanasta päätti","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield106","label":"Arviointikeskusteluun osallistujat","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield190","label":"Kuvaus suoritetusta näytöstä","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield191","label":"Perustelut, jos näyttö on hylätty","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."},{"control":"pfield192","label":"Näytön täydentäminen/uusiminen","reason":"Näytön arviointiosa; sovellus ei täytä (profiili: forbidden)."}]}]}</script>
+<!-- kentat:LOPPU -->
+<!-- wilma-seed:ALKU (scripts/synkkaa-prototyyppi.py, älä muokkaa käsin) -->
+<script type="application/json" id="wilma-seed">{"students":[{"sid":"1101","surname":"Virtanen","first_names":"Aino","student_number":"20101","qualification":"Liiketoiminnan perustutkinto"},{"sid":"1102","surname":"Virtanen","first_names":"Aino","student_number":"20102","qualification":"Tieto- ja viestintätekniikan perustutkinto"},{"sid":"1103","surname":"Ärmänen","first_names":"Pinja","student_number":"20103","qualification":"Logistiikan perustutkinto"},{"sid":"1104","surname":"Östman","first_names":"Leo","student_number":"20104","qualification":"Liiketoiminnan perustutkinto"},{"sid":"1105","surname":"Lahtinen","first_names":"Eero","student_number":"20105","qualification":"Logistiikan perustutkinto"},{"sid":"1106","surname":"Åberg","first_names":"Saga","student_number":"20106","qualification":"Liiketoiminnan perustutkinto"},{"sid":"1107","surname":"Valkama","first_names":"Iiro","student_number":"20107","qualification":"Tieto- ja viestintätekniikan perustutkinto"}],"parts":[{"catalog_id":"8101","code":"SYN-ASPA","name":"Asiakaspalvelu"},{"catalog_id":"8102","code":"SYN-MYTY","name":"Myyntityö"},{"catalog_id":"8103","code":"SYN-TUOT","name":"Tuotteiden esillepano"},{"catalog_id":"8104","code":"SYN-VERK","name":"Verkkokauppa"},{"catalog_id":"8105","code":"SYN-LOGI","name":"Varastologistiikka"},{"catalog_id":"8106","code":"SYN-YRIT","name":"Yrittäjyys"},{"catalog_id":"8107","code":"SYN-VIES","name":"Viestintä- ja vuorovaikutusosaaminen"}],"school_years":[["2026","2026–2027"],["2027","2027–2028"],["2028","2028–2029"],["2029","2029–2030"],["2030","2030–2031"],["2031","2031–2032"]],"requirements":{"8101":["Opiskelija palvelee asiakasta asiakaslähtöisesti.","Opiskelija toimii yrityksen palveluperiaatteiden mukaisesti."],"8102":["Opiskelija suunnittelee myyntityönsä.","Opiskelija esittelee tuotteita asiakkaalle."]}}</script>
+<!-- wilma-seed:LOPPU -->
 <script>
 'use strict';
 
-// ---- Keksitty data ----
+// ---- Upotettu data: kenttäluettelo (kanoni pages/haastattelupolku/kentat.json) ja
+//      synteettisen Wilma v2:n demohenkilöt ja HOPS-puun osat (scripts/synkkaa-prototyyppi.py).
+const KENTAT = JSON.parse(document.getElementById('kentat').textContent);
+const SEED = JSON.parse(document.getElementById('wilma-seed').textContent);
+const SPEC = {};
+KENTAT.forms.forEach(f => { SPEC[f.id] = f; });
+const PARTS = SEED.parts.map(p => ({code: p.catalog_id, wcode: p.code, name: p.name}));
+const YEARS = SEED.school_years.slice(0, 3).map(([, label]) => label);
+const PERIODS = ['1', '2', '3', '4', '5'];
+const requirements = cid => SEED.requirements[cid] || [];
+const SEED_STUDENT = name => SEED.students.find(s => `${s.first_names} ${s.surname}` === name);
+
 const QUALIFICATIONS = [
   'Liiketoiminnan perustutkinto',
-  'Liiketoiminnan ammattitutkinto',
   'Tieto- ja viestintätekniikan perustutkinto',
-  'Johtamisen ja yritysjohtamisen erikoisammattitutkinto',
-];
-const PARTS = [
-  {code: 'OSA-1', name: 'Asiakaspalvelu ja myynti'},
-  {code: 'OSA-2', name: 'Markkinointiviestintä'},
-  {code: 'OSA-3', name: 'Taloushallinnon tehtävät'},
-  {code: 'OSA-4', name: 'Tuotteen hankinta'},
+  'Logistiikan perustutkinto',
+  'Liiketoiminnan ammattitutkinto',
 ];
 const CONTRACT_TYPES = ['Oppisopimus', 'Yrittäjän oppisopimus', 'Koulutussopimus'];
-const YEARS = ['2026–2027', '2027–2028'];
-const PERIODS = ['1', '2', '3', '4', '5'];
+// Keksityt hakijat vastaavat synteettisen Wilman opiskelijoita (sama kuin testiversiossa).
 const APPLICANTS = [
-  {name: 'Leo Demo', qual: 'Liiketoiminnan perustutkinto', employer: 'Esimerkkikauppa Oy', businessId: '1234567-8'},
-  {name: 'Leena Demonen', qual: 'Tieto- ja viestintätekniikan perustutkinto', employer: 'Kuvitteellinen Data Oy', businessId: '7654321-0'},
+  {name: 'Iiro Valkama', qual: 'Tieto- ja viestintätekniikan perustutkinto', employer: 'Keksitty Konepaja Oy', businessId: '2740173-6'},
+  {name: 'Saga Åberg', qual: 'Liiketoiminnan perustutkinto', employer: 'Kukkakauppa Esimerkki Oy', businessId: '2740195-5'},
+  {name: 'Pinja Ärmänen', qual: 'Logistiikan perustutkinto', employer: 'Testivarasto Ab', businessId: '2740162-1'},
 ];
 
-// Haastattelun osiot keskustelun järjestyksessä. Kenttäavaimet vastaavat profiilin loogisia avaimia.
+// Haastattelun osiot keskustelun järjestyksessä. Otsikot ovat Wilman sanat (kentat.json); help on
+// selkokielinen apuselite. Kenttäavaimet vastaavat kentat.jsonin key-arvoja.
 const SECTIONS = [
   {id: 'perus', title: 'Perustiedot', lead: 'Kuka hakija on, mihin tutkintoon hän hakee ja millä sopimuksella.', goes: ['Opiskelijan sidonta', 'Henkilökohtaistaminen', 'Oppisopimus'], fields: [
-    {k: 'name', label: 'Nimi', full: true},
+    {k: 'name', label: 'Nimi', full: true, help: 'Etunimi ja sukunimi'},
     {k: 'qual', label: 'Haettava tutkinto', type: 'select', options: QUALIFICATIONS, full: true, hint: 'Avoimet koulutukset. Esitäytetty hakijatiedoista, vaihda tarvittaessa.'},
     {k: 'contractType', label: 'Sopimusmuoto', type: 'select', options: CONTRACT_TYPES, full: true, hint: 'Ratkaisee, mikä sopimuslomake Wilmaan täytetään.'},
     {k: 'start', label: 'Opiskeluaika alkaa', type: 'date'},
     {k: 'end', label: 'Opiskeluaika päättyy', type: 'date'},
   ]},
-  {id: 'tyopaikka', title: 'Työpaikka', lead: 'Kysy ensin Y-tunnus. Samalla Y-tunnuksella voi olla useita toimipaikkoja, joten varmista toimipaikka.', goes: ['Työpaikkarekisteri', 'Oppisopimus'], fields: [
-    {k: 'businessId', label: 'Y-tunnus', hint: 'Muoto 1234567-8'},
-    {k: 'employer', label: 'Työpaikan nimi'},
-    {k: 'street', label: 'Toimipaikan lähiosoite', full: true},
-    {k: 'postal', label: 'Postinumero ja -toimipaikka'},
-    {k: 'municipality', label: 'Paikkakunta'},
-    {k: 'wpPhone', label: 'Puhelin', optional: true},
-    {k: 'wpEmail', label: 'Sähköposti', optional: true},
+  {id: 'tyopaikka', title: 'Työpaikka', lead: 'Kysy ensin Y-tunnus. Samalla Y-tunnuksella voi olla useita toimipaikkoja, joten varmista toimipaikka.', goes: ['Työpaikkarekisteri', 'Oppisopimus', 'Näyttösuunnitelmat'], fields: [
+    {k: 'businessId', label: 'Y-tunnus', hint: 'Muoto 1234567-8. Sovellus hakee tällä ensin työpaikkarekisteristä.'},
+    {k: 'employer', label: 'Nimi', help: 'Työpaikan (yrityksen) nimi'},
+    {k: 'street', label: 'Lähiosoite', full: true, help: 'Toimipaikan katuosoite'},
+    {k: 'postal', label: 'Postiosoite', help: 'Postinumero ja -toimipaikka'},
+    {k: 'municipality', label: 'Toimipisteen paikkakunta', hint: 'Valitaan Wilman listasta.'},
+    {k: 'country', label: 'Maa (jos muu kuin Suomi)', optional: true, hint: 'Jätä tyhjäksi, jos Suomi.'},
+    {k: 'wpPhone', label: 'Puhelin', optional: true, help: 'Työpaikan puhelin'},
+    {k: 'wpEmail', label: 'Sähköpostiosoite', optional: true, help: 'Työpaikan sähköposti'},
+    {k: 'wpActive', label: 'Työpaikka on aktiivinen', type: 'checkbox', optional: true},
+    {k: 'wpPublic', label: 'Julkinen', type: 'checkbox', optional: true, help: 'Työpaikka näkyy muillekin'},
+    {k: 'wpApprentice', label: 'Oppisopimuspaikka', type: 'checkbox', optional: true},
   ]},
   {id: 'ohjaaja', title: 'Ohjaaja', lead: 'Kuka ohjaa opiskelijaa työpaikalla? Yhteyshenkilö vain, jos se on eri henkilö.', goes: ['Ohjaajarekisteri', 'Oppisopimus'], fields: [
-    {k: 'insName', label: 'Työpaikkaohjaajan nimi', full: true},
-    {k: 'insPhone', label: 'Puhelin'},
-    {k: 'insEmail', label: 'Sähköposti'},
+    {k: 'insLast', label: 'Sukunimi', help: 'Työpaikkaohjaajan sukunimi'},
+    {k: 'insFirst', label: 'Etunimet', help: 'Työpaikkaohjaajan etunimet'},
+    {k: 'insPhone', label: 'Puhelin', help: 'Ohjaajan puhelin'},
+    {k: 'insEmail', label: 'Sähköpostiosoite', help: 'Ohjaajan sähköposti'},
     {k: 'contact', label: 'Työpaikan yhteyshenkilö', optional: true, full: true, hint: 'Jätä tyhjäksi, jos sama kuin ohjaaja.'},
   ]},
   {id: 'sopimus', title: 'Oppisopimus', lead: 'Sopimuksen ehdot. Palkkauksen voi jättää myöhemmäksi.', goes: ['Oppisopimus'], fields: [
@@ -319,46 +354,53 @@ const SECTIONS = [
     {k: 'signed', label: 'Sopimuksen solmimispäivä', type: 'date'},
   ]},
   {id: 'osat', title: 'Tutkinnon osat', lead: 'Mitkä osat tehdään ja milloin. Osan pitää olla HOKSissa ennen kuin se voidaan aikatauluttaa Wilmassa.', goes: ['Tutkintokoulutuksen suunnittelu', 'Näyttösuunnitelmat'], parts: true},
-  {id: 'naytot', title: 'Näytöt', lead: 'Alustavat tiedot näyttösuunnitelmiin. Usein tarkentuvat myöhemmin; voit ohittaa osion.', goes: ['Näyttösuunnitelmat'], fields: [
-    {k: 'demoEnv', label: 'Näyttöympäristö (työpaikka ja tehtävät)', type: 'textarea', full: true, optional: true},
-    {k: 'demoTiming', label: 'Näyttöjen alustava ajankohta', optional: true, full: true, hint: 'Näytön arviointia sovellus ei täytä.'},
-  ]},
+  {id: 'naytot', title: 'Näytöt', lead: 'Näyttösuunnitelma kullekin valitulle tutkinnon osalle: päivät, ympäristö ja suunnitelma jokaiselle ammattitaitovaatimukselle. Usein tarkentuvat myöhemmin; voit ohittaa osion.', goes: ['Näyttösuunnitelmat'], demo: true},
   {id: 'ura', title: 'Urasuunnitelma', lead: 'Opiskelijan omat suunnitelmat. Kirjaa hänen sanoillaan.', goes: ['Urasuunnitelma (13)'], fields: [
-    {k: 'further', label: 'Jatko-opinnot', type: 'textarea', full: true},
-    {k: 'working', label: 'Työelämään siirtyminen', type: 'textarea', full: true},
-    {k: 'career', label: 'Uralla eteneminen', type: 'textarea', full: true, optional: true},
-    {k: 'docDate', label: 'Laatimispäivä', type: 'date', hint: 'Esitäytetty haastattelun päivästä'},
-    {k: 'participants', label: 'Laatimiseen osallistuneet', hint: 'Esitäytetty: hakija ja haastattelija'},
+    {k: 'goal', label: 'Opiskelijan tavoite', optional: true, full: true},
+    {k: 'further', label: 'Suunnitelma jatko-opintoihin siirtymisestä', type: 'textarea', full: true, help: 'Jatko-opinnot'},
+    {k: 'working', label: 'Suunnitelma työelämään siirtymisestä', type: 'textarea', full: true, help: 'Työelämään siirtyminen'},
+    {k: 'career', label: 'Suunnitelma työuralla etenemiseksi', type: 'textarea', full: true, optional: true, help: 'Uralla eteneminen'},
+    {k: 'continuation', label: 'Suunnitelma opintojen jatkamiseksi (kirjataan, jos opiskelija eroaa oppilaitoksesta)', type: 'textarea', full: true, optional: true},
+    {k: 'docDate', label: 'Asiakirjan laatimispäivä', type: 'date', hint: 'Esitäytetty haastattelun päivästä'},
+    {k: 'teachers', label: 'Vastuuopettajat (suunnitelman laatijat)', optional: true},
+    {k: 'others', label: 'Muut vastuuhenkilöt', optional: true, full: true},
+    {k: 'participants', label: 'Asiakirjan laatimiseen osallistuneet', type: 'textarea', full: true, hint: 'Esitäytetty: hakija ja haastattelija'},
   ]},
   {id: 'yhteenveto', title: 'Yhteenveto', lead: 'Mitä kullekin Wilman lomakkeelle on kertynyt. Puuttuvat tiedot voi täydentää nyt tai myöhemmin.', summary: true},
 ];
 
 // Wilman lomakkeet siirtojärjestyksessä (issue #19, Matin lomakelista 2.11.2026) ja niiden vaatimat
-// haastattelukentät. Työpaikka ja ohjaaja ovat rekisterejä, joita sopimuslomake tarvitsee.
-// open: kohta, joka on vielä selvitettävä (#19). Sopimuslomake riippuu sopimusmuodosta.
+// haastattelukentät. open: kohta, joka on vielä selvitettävä (#19).
 const FORMS = [
   {id: 'sidonta', title: 'Opiskelijan sidonta', what: 'Etsitään hakija Wilmasta opiskelijana', needs: ['name']},
   {id: 'hk', title: 'Henkilökohtaistaminen', what: 'Opintojen alku- ja loppupäivämäärä', needs: ['start', 'end'], open: 'Lomake kartoittamatta (#19).'},
   {id: 'tyopaikka', title: 'Työpaikka', what: 'Rekisteri: haku Y-tunnuksella, uusi vain jos ei löydy', needs: ['businessId', 'employer'], group: 'Rekisteri'},
-  {id: 'ohjaaja', title: 'Työpaikkaohjaaja', what: 'Rekisteri: työpaikan alle', needs: ['insName'], group: 'Rekisteri'},
+  {id: 'ohjaaja', title: 'Työpaikkaohjaaja', what: 'Rekisteri: haku nimellä, uusi työpaikan alle', needs: ['insLast', 'insFirst'], group: 'Rekisteri'},
   {id: 'sopimus', title: 'Oppisopimus', what: 'Sopimuslomake sopimusmuodon mukaan', needs: ['contractType', 'qual', 'start', 'end', 'tasks', 'hours', 'signed']},
   {id: 'polku', title: 'Tutkintokoulutuksen suunnittelu', what: 'Tutkinnon osien lukuvuosi ja jakso', needs: ['@parts'], open: 'Onko tämä Wilman opintopolku? Selvitettävä (#19).'},
   {id: 'ura', title: 'Urasuunnitelma (13)', what: 'Uusi urasuunnitelma', needs: ['further', 'working']},
-  {id: 'naytot', title: 'Näyttösuunnitelmat', what: 'Suunnitelmaosa tutkinnon osittain. Arviointiosaa sovellus ei täytä.', needs: ['@parts', 'demoEnv']},
+  {id: 'naytot', title: 'Näyttösuunnitelmat', what: 'Suunnitelmaosa tutkinnon osittain. Arviointiosaa sovellus ei täytä.', needs: ['@parts', '@demo']},
 ];
 function formTitle(st, f) { return f.id === 'sopimus' && st && st.v.contractType ? st.v.contractType : f.title; }
 function formUnsupported(st, f) { return f.id === 'sopimus' && st && st.v.contractType && st.v.contractType !== 'Oppisopimus'; }
 const FIELD = {};
 SECTIONS.forEach(s => (s.fields || []).forEach(f => { FIELD[f.k] = f; }));
-// Kunkin lomakkeen tarkistusnäkymän kentät (pakolliset = FORMS.needs).
-const PICK = {
-  sidonta: ['name', 'qual'], hk: ['start', 'end'], tyopaikka: ['businessId', 'employer', 'street', 'postal', 'municipality', 'wpPhone', 'wpEmail'],
-  ohjaaja: ['insName', 'insPhone', 'insEmail', 'contact'], sopimus: ['contractType', 'qual', 'start', 'end', 'tasks', 'hours', 'partTime', 'trialStart', 'trialEnd', 'salary', 'signed'],
-  polku: ['@parts'], ura: ['further', 'working', 'career', 'docDate', 'participants'], naytot: ['@parts', 'demoEnv', 'demoTiming'],
+// Tarkista tiedot -näkymän kentät: haastattelun omat (ei Wilmassa vielä) + kentat.jsonin vastineet.
+const PICK_EXTRA = {
+  sidonta: ['name', 'qual'], hk: ['start', 'end'],
+  sopimus: ['contractType', 'qual', 'start', 'end', 'tasks', 'hours', 'partTime', 'trialStart', 'trialEnd', 'salary', 'signed'],
+  polku: ['@parts'], naytot: ['@parts', '@demo'],
 };
+const PICK = {};
+FORMS.forEach(f => {
+  const fromSpec = SPEC[f.id] ? SPEC[f.id].fields.map(x => x.key).filter(k => !k.startsWith('@')) : [];
+  PICK[f.id] = [...new Set([...(PICK_EXTRA[f.id] || []), ...fromSpec])].filter(k => k.startsWith('@') || FIELD[k]);
+});
 const LABELS = {};
 SECTIONS.forEach(s => (s.fields || []).forEach(f => { LABELS[f.k] = f.label; }));
 LABELS['@parts'] = 'vähintään yksi tutkinnon osa aikataulutettuna';
+LABELS['@demo'] = 'näyttöympäristö ja suunnitelma jokaiselle ammattitaitovaatimukselle';
+const LONG_KEYS = new Set(['tasks', 'further', 'working', 'career', 'continuation', 'participants', 'goal', 'others']);
 
 const PHASES = [
   {id: 'interview', short: 'Haastattelu', long: 'Haastattelu'},
@@ -369,19 +411,43 @@ const PHASES = [
 
 function today() { const d = new Date(); return `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`; }
 
+// Demohenkilöt samat kuin testiversiossa (synteettisen Wilma v2:n siemenopiskelijat).
 function initialState() {
+  const y0 = YEARS[0] || '';
+  const req = cid => requirements(cid).length;
   return {
     space: 'interviews', screen: 'list', studentId: null, search: null, busy: false,
     students: [
       {id: 's1', phase: 'interview', section: 2, savedAt: '9.42', prefilled: ['name', 'qual', 'contractType', 'employer', 'businessId'],
-        v: {name: 'Aino Esimerkki', qual: 'Liiketoiminnan perustutkinto', contractType: 'Oppisopimus', start: '1.12.2026', end: '30.11.2028', businessId: '2345678-9', employer: 'Mallikahvila Oy', street: 'Esimerkkikatu 1', postal: '00100 Kaupunki', municipality: 'Kaupunki'},
-        parts: {}, transfer: null},
-      {id: 's2', phase: 'waiting', section: 6, savedAt: 'eilen', prefilled: ['name', 'qual', 'employer', 'businessId'],
-        v: {name: 'Ville Malli', qual: 'Liiketoiminnan ammattitutkinto', contractType: 'Oppisopimus', demoEnv: 'Myymälä, asiakaspalvelu ja kassatyö', demoTiming: 'Kevät 2027', start: '15.11.2026', end: '14.11.2027', businessId: '3456789-0', employer: 'Testitalo Oy', street: 'Koekuja 3', postal: '00200 Kaupunki', municipality: 'Kaupunki', insName: 'Olli Ohjaaja', insPhone: '040 000 0000', insEmail: 'ohjaaja@example.invalid', tasks: 'Myynti ja asiakaspalvelu', trialStart: '15.11.2026', trialEnd: '14.5.2027', signed: '10.11.2026', further: 'Ei suunnitelmia nyt.', working: 'Jatkaa nykyisessä työpaikassa.', docDate: '1.11.2026', participants: 'Hakija ja haastattelija'},
-        parts: {'OSA-1': {on: true, year: YEARS[0], period: '3'}}, transfer: null},
-      {id: 's3', phase: 'transfer', section: 6, savedAt: '29.10.', prefilled: ['name', 'qual'],
-        v: {name: 'Sanni Koe', qual: 'Tieto- ja viestintätekniikan perustutkinto', contractType: 'Oppisopimus', demoEnv: 'Tukipalvelun palvelupiste', demoTiming: 'Syksy 2027', start: '1.11.2026', end: '31.10.2028', businessId: '4567890-1', street: 'Mallitie 5', postal: '00300 Kaupunki', municipality: 'Kaupunki', insName: 'Kaisa Kouluttaja', insPhone: '040 111 1111', insEmail: 'kaisa@example.invalid', tasks: 'Tukipalvelut', hours: '38', trialStart: '1.11.2026', trialEnd: '30.4.2027', signed: '25.10.2026', further: 'Ammattikorkeakoulu myöhemmin.', working: 'Vakituinen paikka nykyisessä työpaikassa.', docDate: '29.10.2026', participants: 'Hakija ja haastattelija'},
-        parts: {'OSA-2': {on: true, year: YEARS[0], period: '2'}}, transfer: {done: 2, step: 0}},
+        v: {name: 'Leo Östman', qual: 'Liiketoiminnan perustutkinto', contractType: 'Oppisopimus', start: '1.12.2026', end: '30.11.2028', businessId: '2740151-7', employer: 'Synteettinen Kahvila Oy', street: 'Kahvikuja 1', postal: '45100 Kouvola', municipality: 'Kouvola'},
+        parts: {}, demo: {}, transfer: null},
+      {id: 's2', phase: 'waiting', section: 7, savedAt: 'eilen', prefilled: ['name', 'qual', 'employer', 'businessId'],
+        v: {name: 'Aino Virtanen', qual: 'Liiketoiminnan perustutkinto', contractType: 'Oppisopimus', start: '15.11.2026', end: '14.11.2028',
+          businessId: '2740184-0', employer: 'Leipomo Esimerkki Oy', street: 'Leipurinkatu 4', postal: '45100 Kouvola', municipality: 'Kouvola', country: '', wpPhone: '040 000 0201', wpEmail: 'leipomo@example.test',
+          wpActive: true, wpPublic: false, wpApprentice: true,
+          insLast: 'Koskinen', insFirst: 'Sanna', insPhone: '040 000 1204', insEmail: 'sanna@example.test', contact: '',
+          tasks: 'Asiakaspalvelu ja myynti leipomomyymälässä', hours: '38', trialStart: '15.11.2026', trialEnd: '14.5.2027', signed: '10.11.2026',
+          goal: 'Valmistua liiketoiminnan perustutkintoon oppisopimuksella.', further: 'Ei suunnitelmia nyt.', working: 'Jatkaa nykyisessä työpaikassa.', career: '', continuation: '',
+          docDate: '1.11.2026', teachers: 'Opettaja Synteettinen', others: '', participants: 'Hakija ja haastattelija'},
+        parts: {'8101': {on: true, year: y0, period: '2'}, '8102': {on: true, year: y0, period: '3'}},
+        demo: {
+          '8101': {start: '1.3.2027', end: '31.3.2027', env: 'Leipomomyymälä: asiakaspalvelu ja kassatyö tavallisessa työvuorossa',
+            plan: ['Palvelee asiakkaita myymälässä; työpaikkaohjaaja havainnoi kolme vuoroa.', 'Toimii leipomon palveluperiaatteiden mukaisesti ja kertoo valinnoistaan arviointikeskustelussa.'].slice(0, req('8101')),
+            docs: ['Havainnointilomake', 'Asiakaspalautteet'].slice(0, req('8101'))},
+          '8102': {start: '1.4.2027', end: '30.4.2027', env: 'Leipomomyymälä: tuote-esittely ja myynti',
+            plan: ['Suunnittelee viikon myyntikampanjan ohjaajan kanssa.', 'Esittelee tuotteita asiakkaille ja kertoo raaka-aineista.'].slice(0, req('8102')),
+            docs: ['Kampanjasuunnitelma', ''].slice(0, req('8102'))},
+        },
+        transfer: null},
+      {id: 's3', phase: 'transfer', section: 7, savedAt: '29.10.', prefilled: ['name', 'qual'],
+        v: {name: 'Eero Lahtinen', qual: 'Logistiikan perustutkinto', contractType: 'Oppisopimus', start: '1.11.2026', end: '31.10.2028',
+          businessId: '2740162-1', employer: 'Testivarasto Ab', street: 'Varastotie 2', postal: '48100 Kotka', municipality: 'Kotka', wpPhone: '040 000 0102', wpEmail: 'varasto@example.test',
+          insLast: 'Mäkinen', insFirst: 'Pekka', insPhone: '040 000 1103', insEmail: 'pekka@example.test',
+          tasks: 'Varastotyö ja keräily', hours: '38', trialStart: '1.11.2026', trialEnd: '30.4.2027', signed: '25.10.2026',
+          further: 'Ammattikorkeakoulu myöhemmin.', working: 'Vakituinen paikka nykyisessä työpaikassa.', docDate: '29.10.2026', participants: 'Hakija ja haastattelija'},
+        parts: {'8105': {on: true, year: y0, period: '2'}},
+        demo: {'8105': {start: '', end: '', env: 'Varaston keräily ja lähetys', plan: [], docs: []}},
+        transfer: {done: 2, step: 0}},
     ],
   };
 }
@@ -391,12 +457,35 @@ let state = initialState();
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const cur = () => state.students.find(s => s.id === state.studentId);
-const filled = (st, k) => k === '@parts' ? Object.values(st.parts).some(p => p.on && p.year && p.period) : !!String(st.v[k] || '').trim();
+const norm = s => String(s ?? '').trim();
 function announce(t) { $('#announcer').textContent = t; }
+function onParts(st) { return PARTS.filter(p => (st.parts[p.code] || {}).on); }
+function demoOf(st, cid) {
+  st.demo = st.demo || {};
+  return (st.demo[cid] = st.demo[cid] || {start: '', end: '', env: '', plan: [], docs: []});
+}
+function demoFilled(st) {
+  const on = onParts(st);
+  return on.length > 0 && on.every(p => {
+    const d = (st.demo || {})[p.code] || {};
+    return norm(d.env) && requirements(p.code).every((_r, i) => norm((d.plan || [])[i]));
+  });
+}
+function filled(st, k) {
+  if (k === '@parts') return Object.values(st.parts).some(p => p.on && p.year && p.period);
+  if (k === '@demo') return demoFilled(st);
+  const v = st.v[k];
+  return typeof v === 'boolean' ? v : !!String(v || '').trim();
+}
+const shown = v => v === true ? 'Kyllä' : (v === false ? 'Ei' : (v || ''));
 
 function sectionStatus(st, sec) {
   if (sec.summary) return null;
   if (sec.parts) return filled(st, '@parts') ? 'full' : 'empty';
+  if (sec.demo) {
+    if (demoFilled(st)) return 'full';
+    return Object.values(st.demo || {}).some(d => norm(d.env) || (d.plan || []).some(norm)) ? 'partial' : 'empty';
+  }
   const req = sec.fields.filter(f => !f.optional);
   const n = req.filter(f => filled(st, f.k)).length;
   return n === 0 ? 'empty' : (n === req.length ? 'full' : 'partial');
@@ -480,36 +569,65 @@ function viewNew() {
   if (s && s.done) {
     const hits = APPLICANTS.filter(a => a.name.toLowerCase().includes(s.q.toLowerCase()));
     results = hits.length
-      ? `<div class="cards">${hits.map((a, i) => `<button class="card" data-pick="${APPLICANTS.indexOf(a)}"><span><strong>${esc(a.name)}</strong><span class="facts"><span>Hakee: <b>${esc(a.qual)}</b></span><span>Työpaikka: <b>${esc(a.employer)}</b></span><span>Y-tunnus: <b>${esc(a.businessId)}</b></span></span></span></button>`).join('')}</div><p class="small muted" style="margin-top:10px">Valitse oikea hakija. Nimi, tutkinto, työpaikka ja Y-tunnus esitäytetään.</p>`
+      ? `<div class="cards">${hits.map(a => `<button class="card" data-pick="${APPLICANTS.indexOf(a)}"><span><strong>${esc(a.name)}</strong><span class="facts"><span>Hakee: <b>${esc(a.qual)}</b></span><span>Työpaikka: <b>${esc(a.employer)}</b></span><span>Y-tunnus: <b>${esc(a.businessId)}</b></span></span></span></button>`).join('')}</div><p class="small muted" style="margin-top:10px">Valitse oikea hakija. Nimi, tutkinto, työpaikka ja Y-tunnus esitäytetään.</p>`
       : `<div class="note warn" style="margin-top:14px">Hakijaa ei löytynyt. Voit aloittaa haastattelun ilman esitäyttöä ja kirjoittaa tiedot itse.</div>`;
   } else if (s && s.busy) {
     results = `<p class="small muted" style="margin-top:12px"><span class="spinner"></span> Haetaan Wilman hakijoista…</p>`;
   }
-  return `<header class="page-head"><div class="eyebrow">Uusi haastattelu · ennen osiota 1</div><h1>Kenen kanssa puhut?</h1><p>Hae hakija Wilmasta, niin perustiedot esitäytetään. Haku vain lukee Wilmaa. Kokeile esimerkiksi ”Leo”.</p></header>
+  return `<header class="page-head"><div class="eyebrow">Uusi haastattelu · ennen osiota 1</div><h1>Kenen kanssa puhut?</h1><p>Hae hakija Wilmasta, niin perustiedot esitäytetään. Haku vain lukee Wilmaa. Kokeile esimerkiksi ”Iiro” tai ”Saga”.</p></header>
   <div class="panel"><div class="panel-head"><h3>Hae hakija Wilmasta</h3><span class="badge accent">Vain luku</span></div>
   <div class="search"><label class="sr-only" for="q">Hakijan nimi</label><input class="control" id="q" placeholder="Hakijan nimi" value="${esc(s ? s.q : '')}" autocomplete="off"><button class="btn primary" id="do-search">Hae</button></div>${results}</div>
   <div class="panel"><div class="panel-head"><h3>Tai aloita ilman esitäyttöä</h3></div><p class="small muted" style="margin-bottom:12px">Esimerkiksi kun hakija ei vielä näy Wilmassa tai tiedot ladataan myöhemmin muualta.</p><button class="btn" id="blank">Aloita tyhjästä</button></div>`;
 }
 
+function hintHtml(f) {
+  const parts = [f.help ? `Eli: ${f.help}.` : '', f.hint || ''].filter(Boolean);
+  return parts.length ? `<div class="hint">${esc(parts.join(' '))}</div>` : '';
+}
 function fieldHtml(st, f, missing) {
-  const val = st.v[f.k] || '';
+  const raw = st.v[f.k];
+  if (f.type === 'checkbox') {
+    return `<label class="field check${f.full ? ' full' : ''}" for="f-${f.k}" data-field="${f.k}"><span class="check-row"><input type="checkbox" id="f-${f.k}" data-k="${f.k}"${raw === true ? ' checked' : ''}><span>${esc(f.label)}</span></span>${hintHtml(f)}</label>`;
+  }
+  const val = raw || '';
   const pre = st.prefilled.includes(f.k) && val;
   const cls = 'control' + (pre ? ' prefilled' : '');
   let ctl;
   if (f.type === 'select') ctl = `<select class="${cls}" id="f-${f.k}" data-k="${f.k}"><option value="">Valitse…</option>${f.options.map(o => `<option${o === val ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
   else if (f.type === 'textarea') ctl = `<textarea class="${cls}" id="f-${f.k}" data-k="${f.k}" rows="3">${esc(val)}</textarea>`;
   else ctl = `<input class="${cls}" id="f-${f.k}" data-k="${f.k}" value="${esc(val)}"${f.type === 'date' ? ' placeholder="pp.kk.vvvv" inputmode="numeric"' : ''} autocomplete="off">`;
-  return `<label class="field${f.full ? ' full' : ''}${missing ? ' missing' : ''}" for="f-${f.k}" data-field="${f.k}"><span class="lbl">${esc(f.label)}${missing ? '<span class="miss-chip">Puuttuu</span>' : ''}${f.optional ? '<span class="opt">valinnainen</span>' : ''}${pre ? '<span class="src">Hakijatiedoista</span>' : ''}</span>${ctl}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}</label>`;
+  return `<label class="field${f.full ? ' full' : ''}${missing ? ' missing' : ''}" for="f-${f.k}" data-field="${f.k}"><span class="lbl">${esc(f.label)}${missing ? '<span class="miss-chip">Puuttuu</span>' : ''}${f.optional ? '<span class="opt">valinnainen</span>' : ''}${pre ? '<span class="src">Hakijatiedoista</span>' : ''}</span>${ctl}${hintHtml(f)}</label>`;
 }
 
 function partsHtml(st, highlight) {
   const rows = PARTS.map(p => {
     const v = st.parts[p.code] || {};
     const rowMissing = highlight && v.on && !(v.year && v.period);
-    return `<tr${rowMissing ? ' class="missing"' : ''}><td><input type="checkbox" data-part="${p.code}" data-pk="on"${v.on ? ' checked' : ''} aria-label="${esc(p.name)}"></td><td>${esc(p.name)}</td><td><select class="control" data-part="${p.code}" data-pk="year"${v.on ? '' : ' disabled'} aria-label="Lukuvuosi"><option value="">–</option>${YEARS.map(y => `<option${y === v.year ? ' selected' : ''}>${y}</option>`).join('')}</select></td><td><select class="control" data-part="${p.code}" data-pk="period"${v.on ? '' : ' disabled'} aria-label="Jakso"><option value="">–</option>${PERIODS.map(y => `<option${y === v.period ? ' selected' : ''}>${y}</option>`).join('')}</select></td></tr>`;
+    const label = `${p.wcode} ${p.name}`;
+    return `<tr${rowMissing ? ' class="missing"' : ''}><td><input type="checkbox" data-part="${p.code}" data-pk="on"${v.on ? ' checked' : ''} aria-label="${esc(label)}"></td><td>${esc(label)}</td><td><select class="control" data-part="${p.code}" data-pk="year"${v.on ? '' : ' disabled'} aria-label="Valinnan lukuvuosi: ${esc(label)}"><option value="">–</option>${YEARS.map(y => `<option${y === v.year ? ' selected' : ''}>${esc(y)}</option>`).join('')}</select></td><td><select class="control" data-part="${p.code}" data-pk="period"${v.on ? '' : ' disabled'} aria-label="Valinnan jakso: ${esc(label)}"><option value="">–</option>${PERIODS.map(y => `<option${y === v.period ? ' selected' : ''}>${y}</option>`).join('')}</select></td></tr>`;
   }).join('');
   const none = highlight && !filled(st, '@parts') ? '<div class="check-head warn" style="margin-bottom:10px"><span class="miss-chip">Puuttuu</span> Valitse vähintään yksi osa ja sille lukuvuosi ja jakso.</div>' : '';
-  return `${none}<table class="parts"><thead><tr><th></th><th>Tutkinnon osa</th><th>Lukuvuosi</th><th>Jakso</th></tr></thead><tbody>${rows}</tbody></table><div class="hint">Jaksot tulevat oppilaitoksen jaksojärjestelmästä. Jaksoa ”muu” ei käytetä.</div>`;
+  return `${none}<div class="table-wrap"><table class="parts"><thead><tr><th><span class="sr-only">Valittu</span></th><th>Tutkinnon osa</th><th>Valinnan lukuvuosi</th><th>Valinnan jakso</th></tr></thead><tbody>${rows}</tbody></table></div><div class="hint">Jaksot tulevat oppilaitoksen jaksojärjestelmästä. Jaksoa ”Muu” ei käytetä.</div>`;
+}
+
+// Näytöt: valituille tutkinnon osille päivät, ympäristö ja vaatimustaulukon rivit (Wilman otsikoin).
+function demoHtml(st, highlight) {
+  const on = onParts(st);
+  if (!on.length) return `<div class="note${highlight ? ' warn' : ''}">Valitse ensin tutkinnon osat osiossa ”Tutkinnon osat”. Näyttösuunnitelma tehdään osa kerrallaan.</div>`;
+  const ctl = (cid, dk, row, label, value, opts = {}) => {
+    const id = `d-${cid}-${dk}${row === null ? '' : `-${row}`}`;
+    const miss = highlight && opts.req && !norm(value);
+    const input = opts.area
+      ? `<textarea class="control" id="${id}" rows="2" data-demo="${cid}" data-dk="${dk}"${row === null ? '' : ` data-row="${row}"`}${opts.req ? ' data-req="1"' : ''}>${esc(value)}</textarea>`
+      : `<input class="control" id="${id}" data-demo="${cid}" data-dk="${dk}" value="${esc(value)}"${opts.date ? ' placeholder="pp.kk.vvvv" inputmode="numeric"' : ''} autocomplete="off">`;
+    return `<label class="field${opts.full ? ' full' : ''}${miss ? ' missing' : ''}" for="${id}" data-demo-field><span class="lbl">${esc(label)}${miss ? '<span class="miss-chip">Puuttuu</span>' : ''}${opts.req ? '' : '<span class="opt">valinnainen</span>'}</span>${input}${opts.help ? `<div class="hint">${esc(opts.help)}</div>` : ''}</label>`;
+  };
+  return on.map(p => {
+    const d = demoOf(st, p.code);
+    const reqs = requirements(p.code);
+    const rows = reqs.map((text, i) => `<div class="req"><p class="req-text"><span>Ammattitaitovaatimus ${i + 1}/${reqs.length}</span>${esc(text)}</p><div class="fields">${ctl(p.code, 'plan', i, 'Suunnitelma osaamisen osoittamisesta', (d.plan || [])[i] || '', {area: true, req: true, full: true, help: 'Eli: miten opiskelija osoittaa tämän osaamisen työssä.'})}${ctl(p.code, 'docs', i, 'Tekemisessä syntyvät dokumentit', (d.docs || [])[i] || '', {area: true, full: true})}</div></div>`).join('');
+    return `<fieldset class="demo-part"><legend>${esc(`${p.wcode} ${p.name}`)}</legend><div class="fields">${ctl(p.code, 'start', null, 'Näytön aloituspvm', d.start, {date: true})}${ctl(p.code, 'end', null, 'Näytön päättymispäivä', d.end, {date: true})}${ctl(p.code, 'env', null, 'Näyttöympäristö', d.env, {area: true, req: true, full: true, help: 'Eli: työpaikka ja työtehtävät, joissa näyttö annetaan.'})}</div>${rows || '<p class="hint">Tälle osalle ei ole ammattitaitovaatimuksia.</p>'}</fieldset>`;
+  }).join('') + '<div class="hint">Näytön arviointiosaa (arvosana, arvioijat, arviointitekstit) sovellus ei täytä.</div>';
 }
 
 function summaryHtml(st) {
@@ -531,6 +649,7 @@ function viewInterview(st) {
   let body;
   if (sec.summary) body = summaryHtml(st);
   else if (sec.parts) body = partsHtml(st);
+  else if (sec.demo) body = demoHtml(st, false);
   else body = `<div class="fields">${sec.fields.map(f => fieldHtml(st, f)).join('')}</div>`;
   const readonly = st.phase !== 'interview' ? '<div class="note" style="margin-bottom:14px">Haastattelu on merkitty valmiiksi. Muutokset tallentuvat ja näkyvät siirrossa.</div>' : '';
   return `<div class="iv"><nav aria-label="Haastattelun osiot"><ol class="sections">${nav}</ol><div class="legend"><span class="sec-st"></span>tyhjä<br><span class="sec-st partial"></span>kesken<br><span class="sec-st full"></span>valmis</div></nav>
@@ -550,9 +669,23 @@ function viewTransferList() {
 }
 
 function readout(st, form) {
-  const pick = PICK[form.id].filter(k => k !== '@parts');
-  const parts = PICK[form.id].includes('@parts') ? PARTS.filter(p => (st.parts[p.code] || {}).on).map(p => `<div><dt>${esc(p.name)}</dt><dd>${esc(st.parts[p.code].year || '–')}, jakso ${esc(st.parts[p.code].period || '–')}</dd></div>`).join('') : '';
-  return `<dl class="readout">${parts}${pick.map(k => `<div class="${['tasks', 'further', 'working', 'career', 'demoEnv', 'demoTiming'].includes(k) ? 'long' : ''}"><dt>${esc(LABELS[k])}</dt><dd>${esc(st.v[k] || '–')}</dd></div>`).join('')}</dl>`;
+  const keys = PICK[form.id] || [];
+  const parts = keys.includes('@parts') ? onParts(st).map(p => `<div><dt>${esc(`${p.wcode} ${p.name}`)}</dt><dd>${esc(st.parts[p.code].year || '–')}, jakso ${esc(st.parts[p.code].period || '–')}</dd></div>`).join('') : '';
+  const demo = keys.includes('@demo') ? onParts(st).map(p => {
+    const d = (st.demo || {})[p.code] || {};
+    const reqs = requirements(p.code);
+    const done = reqs.filter((_r, i) => norm((d.plan || [])[i])).length;
+    return `<div class="long"><dt>Näyttö: ${esc(`${p.wcode} ${p.name}`)}</dt><dd>${esc([d.start || d.end ? `${d.start || '–'} – ${d.end || '–'}` : '', d.env || '', reqs.length ? `suunnitelma ${done}/${reqs.length} vaatimukselle` : ''].filter(Boolean).join(' · ') || '–')}</dd></div>`;
+  }).join('') : '';
+  const pick = keys.filter(k => !k.startsWith('@'));
+  return `<dl class="readout">${parts}${demo}${pick.map(k => `<div class="${LONG_KEYS.has(k) ? 'long' : ''}"><dt>${esc(LABELS[k])}</dt><dd>${esc(shown(st.v[k]) || '–')}</dd></div>`).join('')}</dl>`;
+}
+
+// Wilman kentät, joita sovellus ei täytä (kentat.json exceptions), näkyvästi perusteltuina.
+function exceptionsHtml(form) {
+  const spec = SPEC[form.id];
+  if (!spec || !spec.exceptions.length) return '';
+  return `<details class="panel exceptions"><summary>Wilman kentät, joita sovellus ei täytä (${spec.exceptions.length})</summary><ul>${spec.exceptions.map(e => `<li><strong>${esc(e.label)}</strong> – ${esc(e.reason)}</li>`).join('')}</ul><p class="hint">Tallenna- ja Peruuta-painikkeita sekä Lisää uusi -linkkejä sovellus ei koskaan paina.</p></details>`;
 }
 
 function viewTransfer(st) {
@@ -571,17 +704,14 @@ function viewTransfer(st) {
   else {
     const steps = ['Tarkista tiedot', 'Sovellus täyttää', 'Tallenna Wilmassa', 'Varmennettu'];
     const s4 = `<ol class="steps4" aria-label="Lomakkeen vaiheet">${steps.map((t, i) => `<li class="${i < tr.step ? 'done' : (i === tr.step ? 'current' : '')}${i === 2 ? ' you' : ''}"><span>${i + 1}/4</span><b>${t}</b></li>`).join('')}</ol>`;
-    const miss = formMissing(st, form);
-    let turn = '';
+    const openNote = form.open ? `<div class="note" style="margin-bottom:14px">Avoin: ${esc(form.open)}</div>` : '';
     if (tr.step === 0 && !formUnsupported(st, form)) {
-      const openNote = form.open ? `<div class="note" style="margin-bottom:14px">Avoin: ${esc(form.open)}</div>` : '';
-      return `<div class="tr"><nav aria-label="Lomakkeet"><ol class="forms">${forms}</ol></nav><section><header class="page-head"><div class="eyebrow">Siirto · lomake ${tr.done + 1} / ${FORMS.length}</div><h1 tabindex="-1" id="h">${esc(formTitle(st, form))}</h1><p>${esc(form.what)}${form.what.endsWith('.') ? '' : '.'} Korjaa tarvittaessa ja täydennä puuttuvat ennen täyttöä.</p></header>${s4}${openNote}<div id="check-head">${checkHead(st, form)}</div><div class="panel"><div class="panel-head"><h3>Wilma / ${esc(formTitle(st, form))}</h3><span class="badge accent">Muokattavissa</span></div>${editFields(st, form)}<div class="hint" style="margin-top:14px">Muutokset tallentuvat myös haastatteluun.</div></div></section></div>`;
+      return `<div class="tr"><nav aria-label="Lomakkeet"><ol class="forms">${forms}</ol></nav><section><header class="page-head"><div class="eyebrow">Siirto · lomake ${tr.done + 1} / ${FORMS.length}</div><h1 tabindex="-1" id="h">${esc(formTitle(st, form))}</h1><p>${esc(form.what)}${form.what.endsWith('.') ? '' : '.'} Korjaa tarvittaessa ja täydennä puuttuvat ennen täyttöä.</p></header>${s4}${openNote}<div id="check-head">${checkHead(st, form)}</div><div class="panel"><div class="panel-head"><h3>Wilma / ${esc(formTitle(st, form))}</h3><span class="badge accent">Muokattavissa</span></div>${editFields(st, form)}<div class="hint" style="margin-top:14px">Muutokset tallentuvat myös haastatteluun. Kenttien otsikot ovat samat kuin Wilmassa.</div></div>${exceptionsHtml(form)}</section></div>`;
     }
+    let turn = '';
     if (tr.step === 0 && formUnsupported(st, form)) turn = `<div class="note warn" style="margin-bottom:14px">${esc(st.v.contractType)} ei ole vielä sovelluksen tukema. Tee lomake käsin Wilmassa ja merkitse se tehdyksi.</div>`;
-    else if (false) turn = `<div class="note warn" style="margin-bottom:14px">Puuttuu: ${miss.map(k => esc(LABELS[k])).join(', ')}. <button class="btn slim" data-fix="${st.id}">Täydennä haastatteluun</button></div>`;
     if (tr.step === 1) turn = `<div class="turn"><span class="spinner"></span><div><h3>Sovellus täyttää lomaketta Chromessa…</h3><p>Älä koske Chromeen sillä aikaa.</p></div></div>`;
     if (tr.step === 2) turn = `<div class="turn"><span class="big">👉</span><div><h3>Nyt sinun vuorosi Chromessa</h3><p>Tarkista täytetty lomake ”${esc(formTitle(st, form))}” ja paina Wilman Tallenna. Palaa sitten tähän.</p></div></div>`;
-    const openNote = form.open ? `<div class="note" style="margin-bottom:14px">Avoin: ${esc(form.open)}</div>` : '';
     inner = `${s4}${openNote}${turn}<div class="panel"><div class="panel-head"><h3>Wilma / ${esc(formTitle(st, form))}</h3><span class="badge accent">${esc(form.what)}</span></div>${readout(st, form)}</div>`;
   }
   return `<div class="tr"><nav aria-label="Lomakkeet"><ol class="forms">${forms}</ol></nav><section><header class="page-head"><div class="eyebrow">Siirto · lomake ${tr.done + 1} / ${FORMS.length}</div><h1 tabindex="-1" id="h">${esc(formTitle(st, form))}</h1><p>${esc(form.what)}${form.what.endsWith('.') ? '' : '.'}</p></header>${inner}</section></div>`;
@@ -589,7 +719,8 @@ function viewTransfer(st) {
 
 function bindView(st, tr) {
   if (tr.searching) return `<div class="turn"><span class="spinner"></span><div><h3>Haetaan Wilmasta opiskelijana…</h3><p>Haku vain lukee.</p></div></div>`;
-  if (tr.found) return `<div class="panel"><div class="panel-head"><h3>Löytyi yksi opiskelija</h3><span class="badge ok">Opiskelija</span></div><label class="card"><input type="radio" name="bind" id="bind-pick" style="margin-top:5px"><span><strong>${esc(st.v.name)}</strong><span class="facts"><span>Opiskeluoikeus: <b>${esc(st.v.qual)}</b></span><span>Alkaa: <b>${esc(st.v.start || '–')}</b></span></span></span></label><p class="small muted" style="margin-top:10px">Varmista, että tämä on sama henkilö, jota haastattelit.</p></div>`;
+  const w = SEED_STUDENT(st.v.name);
+  if (tr.found) return `<div class="panel"><div class="panel-head"><h3>Löytyi yksi opiskelija</h3><span class="badge ok">Opiskelija</span></div><label class="card"><input type="radio" name="bind" id="bind-pick" style="margin-top:5px"><span><strong>${esc(w ? `${w.surname} ${w.first_names}` : st.v.name)}</strong><span class="facts"><span>Opiskelijanumero: <b>${esc(w ? w.student_number : '–')}</b></span><span>Tutkinto: <b>${esc(w ? w.qualification : st.v.qual)}</b></span><span>Alkaa: <b>${esc(st.v.start || '–')}</b></span></span></span></label><p class="small muted" style="margin-top:10px">Varmista, että tämä on sama henkilö, jota haastattelit.</p></div>`;
   if (st.phase === 'waiting' && tr.notYet) return `<div class="note warn">Hakijaa ei vielä löydy opiskelijana. Hän pysyy jonossa kohdassa ”Odottaa opiskelijaksi”.</div>`;
   return `<div class="panel"><p>Ennen siirtoa hakija pitää löytää Wilmasta <strong>opiskelijana</strong>, jolla on opintokortti. Hakijana olo ei riitä.</p></div>`;
 }
@@ -600,26 +731,27 @@ function checkHead(st, form) {
   return `<div class="check-head warn"><b>${miss.length}</b><span>${miss.length === 1 ? 'pakollinen tieto puuttuu' : 'pakollista tietoa puuttuu'}: ${miss.map(k => esc(LABELS[k])).join(', ')}. Täydennä korostetut kentät.</span></div>`;
 }
 function editFields(st, form) {
-  const keys = PICK[form.id];
-  const parts = keys.includes('@parts') ? `<h3 style="font-size:13px;margin:0 0 8px">Tutkinnon osat</h3>${partsHtml(st, true)}` : '';
-  const fields = keys.filter(k => k !== '@parts').map(k => {
+  const keys = PICK[form.id] || [];
+  const parts = keys.includes('@parts') ? `<h3 class="sub-h">Tutkinnon osat</h3>${partsHtml(st, true)}` : '';
+  const demo = keys.includes('@demo') ? `<h3 class="sub-h">Näyttösuunnitelmat</h3>${demoHtml(st, true)}` : '';
+  const fields = keys.filter(k => !k.startsWith('@')).map(k => {
     const f = FIELD[k];
     return fieldHtml(st, form.needs.includes(k) ? {...f, optional: false} : f, form.needs.includes(k) && !filled(st, k));
   }).join('');
-  return `${parts}${fields ? `<div class="fields"${parts ? ' style="margin-top:18px"' : ''}>${fields}</div>` : ''}`;
+  return `${parts}${demo}${fields ? `<div class="fields"${parts || demo ? ' style="margin-top:18px"' : ''}>${fields}</div>` : ''}`;
 }
 // Päivitä korostukset kirjoittaessa ilman koko näkymän uudelleenpiirtoa (fokus säilyy).
 function refreshMissing(st) {
   const form = FORMS[(st.transfer || {done: 0}).done];
   const head = $('#check-head'); if (head) head.innerHTML = checkHead(st, form);
-  document.querySelectorAll('#main [data-field]').forEach(el => {
-    const k = el.dataset.field;
-    const miss = form.needs.includes(k) && !filled(st, k);
+  const toggle = (el, miss) => {
     el.classList.toggle('missing', miss);
     const chip = el.querySelector('.miss-chip');
     if (miss && !chip) el.querySelector('.lbl').insertAdjacentHTML('beforeend', '<span class="miss-chip">Puuttuu</span>');
     if (!miss && chip) chip.remove();
-  });
+  };
+  document.querySelectorAll('#main [data-field]').forEach(el => { const k = el.dataset.field; if (el.querySelector('.lbl')) toggle(el, form.needs.includes(k) && !filled(st, k)); });
+  document.querySelectorAll('#main [data-demo-field]').forEach(el => { const c = el.querySelector('[data-demo]'); if (c && c.dataset.req) toggle(el, !norm(c.value)); });
   const fill = $('#fill'); if (fill) fill.disabled = formMissing(st, form).length > 0;
 }
 
@@ -643,7 +775,7 @@ function renderActions() {
       else if (!tr.searching) right = '<button class="btn primary big" id="bind-search">Hae Wilmasta opiskelijana</button>';
     } else if (tr.step === 0 && formUnsupported(st, form)) right = '<button class="btn primary big" id="manual-done">Tein käsin – seuraava →</button>';
     else if (tr.step === 0) right = `<button class="btn primary big" id="fill"${formMissing(st, form).length ? ' disabled' : ''}>Tiedot oikein – täytä Wilmaan →</button>`;
-    if (tr.step === 0 && formMissing(st, form).length && !formUnsupported(st, form)) left = '<span class="meta">Täyttö aukeaa, kun puuttuvat tiedot on täydennetty.</span>';
+    if (tr.step === 0 && formMissing(st, form).length && !formUnsupported(st, form) && form.id !== 'sidonta') left = '<span class="meta">Täyttö aukeaa, kun puuttuvat tiedot on täydennetty.</span>';
     else if (tr.step === 2) right = '<button class="btn primary big" id="saved-btn">Tallensin – tarkista tallennus</button>';
     else if (tr.step === 3) right = tr.done + 1 < FORMS.length ? `<button class="btn primary big" id="next-form">Seuraava lomake: ${esc(formTitle(st, FORMS[tr.done + 1]))} →</button>` : '<button class="btn primary big" id="next-form">Valmis ✓</button>';
   } else if (state.screen === 'transfer' && st) {
@@ -676,7 +808,7 @@ function newStudent(app) {
   const id = 's' + Date.now();
   const v = app ? {name: app.name, qual: app.qual, contractType: 'Oppisopimus', employer: app.employer, businessId: app.businessId} : {};
   v.docDate = today(); v.participants = 'Hakija ja haastattelija';
-  state.students.unshift({id, phase: 'interview', section: 0, savedAt: nowTime(), prefilled: app ? ['name', 'qual', 'contractType', 'employer', 'businessId', 'docDate', 'participants'] : ['docDate', 'participants'], v, parts: {}, transfer: null});
+  state.students.unshift({id, phase: 'interview', section: 0, savedAt: nowTime(), prefilled: app ? ['name', 'qual', 'contractType', 'employer', 'businessId', 'docDate', 'participants'] : ['docDate', 'participants'], v, parts: {}, demo: {}, transfer: null});
   state.studentId = id; state.space = 'interviews'; state.search = null;
   state.screen = 'interview'; render(); focusHead();
 }
@@ -694,12 +826,11 @@ document.addEventListener('click', e => {
   if (t.dataset.sec !== undefined) { openSection(Number(t.dataset.sec)); return; }
   if (t.dataset.jumpField) {
     const k = t.dataset.jumpField;
-    const idx = k === '@parts' ? SECTIONS.findIndex(s => s.parts) : SECTIONS.findIndex(s => (s.fields || []).some(f => f.k === k));
+    const idx = k === '@parts' ? SECTIONS.findIndex(s => s.parts) : (k === '@demo' ? SECTIONS.findIndex(s => s.demo) : SECTIONS.findIndex(s => (s.fields || []).some(f => f.k === k)));
     openSection(idx);
     const el = document.getElementById('f-' + k); if (el) el.focus();
     return;
   }
-  if (t.dataset.fix) { state.space = 'interviews'; state.screen = 'interview'; st.section = SECTIONS.length - 1; render(); focusHead(); return; }
   if (t.id === 'do-search') { doSearch(); return; }
   if (t.id === 'blank') { newStudent(null); return; }
   if (t.dataset.pick !== undefined) { newStudent(APPLICANTS[Number(t.dataset.pick)]); return; }
@@ -708,7 +839,7 @@ document.addEventListener('click', e => {
     st.transfer = st.transfer || {done: 0, step: 0}; st.transfer.searching = true; render();
     setTimeout(() => { st.transfer.searching = false; st.transfer.found = true; render(); }, 900); return;
   }
-  if (t.id === 'bind-ok') { st.transfer = {done: 1, step: 0}; st.phase = 'transfer'; render(); focusHead(); announce('Opiskelija sidottu. Seuraavaksi työpaikka.'); return; }
+  if (t.id === 'bind-ok') { st.transfer = {done: 1, step: 0}; st.phase = 'transfer'; render(); focusHead(); announce('Opiskelija sidottu. Seuraavaksi henkilökohtaistaminen.'); return; }
   if (t.id === 'fill') { st.transfer.step = 1; render(); setTimeout(() => { st.transfer.step = 2; render(); announce('Lomake täytetty. Tallenna Wilmassa.'); }, 1200); return; }
   if (t.id === 'manual-done') { st.transfer.step = 3; render(); return; }
   if (t.id === 'saved-btn') { st.transfer.step = 3; render(); announce('Tallennus tarkistettu ja varmennettu.'); return; }
@@ -719,23 +850,32 @@ document.addEventListener('click', e => {
   }
 });
 
-// Valmis-vaiheen ruutu: näytä varmennus vasta kun klikattu
-document.addEventListener('change', e => {
+function onField(e, isChange) {
   const st = cur();
-  if (e.target.id === 'bind-pick') { const b = $('#bind-ok'); if (b) b.disabled = false; return; }
-  if (e.target.dataset.part) {
-    const p = st.parts[e.target.dataset.part] = st.parts[e.target.dataset.part] || {};
-    const k = e.target.dataset.pk;
-    p[k] = k === 'on' ? e.target.checked : e.target.value;
-    if (k === 'on' || state.screen === 'transfer') { render(); }
+  const t = e.target;
+  if (isChange && t.id === 'bind-pick') { const b = $('#bind-ok'); if (b) b.disabled = false; return; }
+  if (!st) return;
+  if (isChange && t.dataset.part) {
+    const p = st.parts[t.dataset.part] = st.parts[t.dataset.part] || {};
+    const k = t.dataset.pk;
+    p[k] = k === 'on' ? t.checked : t.value;
+    if (k === 'on' || state.screen === 'transfer') render();
     touch(st); refreshSectionMarks(st); return;
   }
-  if (e.target.dataset.k) { st.v[e.target.dataset.k] = e.target.value; touch(st); refreshSectionMarks(st); if (state.screen === 'transfer') refreshMissing(st); }
-});
-document.addEventListener('input', e => {
-  const st = cur();
-  if (st && e.target.dataset.k) { st.v[e.target.dataset.k] = e.target.value; touch(st); refreshSectionMarks(st); if (state.screen === 'transfer') refreshMissing(st); }
-});
+  if (t.dataset.demo) {
+    const d = demoOf(st, t.dataset.demo);
+    const k = t.dataset.dk;
+    if (k === 'plan' || k === 'docs') { d[k] = d[k] || []; d[k][Number(t.dataset.row)] = t.value; } else d[k] = t.value;
+    touch(st); refreshSectionMarks(st); if (state.screen === 'transfer') refreshMissing(st);
+    return;
+  }
+  if (t.dataset.k) {
+    if (t.type === 'checkbox') { if (!isChange) return; st.v[t.dataset.k] = t.checked; } else st.v[t.dataset.k] = t.value;
+    touch(st); refreshSectionMarks(st); if (state.screen === 'transfer') refreshMissing(st);
+  }
+}
+document.addEventListener('change', e => onField(e, true));
+document.addEventListener('input', e => onField(e, false));
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'q') { doSearch(); return; }
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
